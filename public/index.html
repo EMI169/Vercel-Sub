@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>پنل ساب</title>
+<style>
+  :root{--bg:#0b0e14;--bg2:#101623;--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);
+    --txt:#eef1f6;--dim:#8b94a7;--amber:#e8b04b;--amber2:#f5d47a;--ok:#5fbf77;--err:#e06c5f;
+    --mono:ui-monospace,Consolas,monospace;--star:rgba(255,255,255,.5)}
+  html[data-theme=light]{--bg:#f0f2f7;--bg2:#e7ebf3;--card:rgba(255,255,255,.8);--line:rgba(20,30,60,.12);
+    --txt:#1c2333;--dim:#5a6478;--star:rgba(30,40,80,.22)}
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--txt);font:15px/1.75 Vazirmatn,Tahoma,sans-serif;min-height:100vh;
+    background:radial-gradient(1100px 500px at 85% -10%,rgba(120,80,200,.15),transparent 60%),
+    radial-gradient(900px 500px at -10% 110%,rgba(40,120,200,.12),transparent 60%),
+    linear-gradient(180deg,var(--bg),var(--bg2))}
+  .stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .star{position:absolute;background:var(--star);border-radius:50%;animation:tw 3s infinite alternate}
+  @keyframes tw{from{opacity:.15}to{opacity:.9}}
+  @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  .wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:20px 16px 70px}
+  .hide{display:none!important}
+  .glass{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:18px}
+  .btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:12px;cursor:pointer;font:inherit;font-size:14px;padding:10px 18px;transition:transform .15s,filter .15s}
+  .btn:active{transform:scale(.97)}
+  .btn-p{background:linear-gradient(135deg,var(--amber),var(--amber2));color:#231a05;font-weight:800}
+  .btn-p:hover{filter:brightness(1.07)}
+  .btn-g{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  .btn-g:hover{color:var(--txt)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .pill{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:7px 13px;font-size:12.5px;color:var(--dim);cursor:pointer;user-select:none}
+  .pill:hover{color:var(--txt)}
+  .lb{max-width:390px;margin:8vh auto 0;padding:34px 28px 26px;text-align:center;position:relative;overflow:hidden}
+  .lb::before{content:"";position:absolute;inset:-40% -20% auto;height:70%;background:radial-gradient(closest-side,rgba(232,176,75,.14),transparent 70%);pointer-events:none}
+  .sw{position:relative;animation:fl 5s ease-in-out infinite}
+  .sw svg{width:80px;height:80px;filter:drop-shadow(0 6px 24px rgba(232,176,75,.45))}
+  .lb h1{font-size:19px;margin:14px 0 4px;position:relative}
+  .lb .sub{color:var(--dim);font-size:12px;margin:0 0 18px;position:relative}
+  .lf{text-align:start;position:relative}
+  .lf label{display:block;font-size:12px;color:var(--dim);margin:13px 0 6px}
+  .lf input{width:100%;background:rgba(0,0,0,.25);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:11px 14px;font-size:14px;outline:none}
+  html[data-theme=light] .lf input{background:#fff}
+  .lf input:focus{border-color:var(--amber)}
+  .msg{min-height:20px;font-size:12px;margin-top:12px;color:var(--err);position:relative}
+  .acts{display:flex;justify-content:space-between;align-items:center;margin-top:16px;position:relative;flex-wrap:wrap;gap:8px}
+  .bar{display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:14px;flex-wrap:wrap}
+  .bar .brand{font-weight:800}
+  .bar .who{color:var(--dim);font-size:12.5px}
+  .spacer{flex:1}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:12px 0}
+  .stat{padding:14px;text-align:center}
+  .stat b{display:block;font-size:24px}
+  .stat span{font-size:11px;color:var(--dim)}
+  .sec{padding:18px;margin-top:16px}
+  .sec .hd{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+  .sec .hd input{background:transparent;border:1px solid transparent;color:var(--txt);font:inherit;font-weight:700;border-radius:8px;padding:4px 8px;max-width:170px}
+  .sec .hd input:hover{border-color:var(--line)}
+  .stt{font-size:11.5px;opacity:0;transition:opacity .3s;margin-right:auto}
+  .stt.show{opacity:1}
+  .stt.ok{color:var(--ok)}.stt.err{color:var(--err)}.stt.busy{color:var(--dim)}
+  .sec textarea{direction:ltr;text-align:left;font-family:var(--mono);font-size:12.5px;line-height:1.65;white-space:pre;overflow-x:auto;min-height:130px;resize:vertical;background:rgba(0,0,0,.28);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:12px;outline:none;width:100%}
+  html[data-theme=light] .sec textarea{background:#fff}
+  .sec textarea:focus{border-color:var(--amber)}
+  .surl input{flex:1;min-width:200px;direction:ltr;text-align:left;font-family:var(--mono);font-size:12px;background:rgba(0,0,0,.28);border:1px solid var(--line);color:#8fd3a0;border-radius:10px;padding:9px 12px}
+  html[data-theme=light] .surl input{background:#fff;color:#2c7a4b}
+  .surl{display:flex;gap:8px;margin-top:12px;align-items:center}
+  .rb{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .e2{color:var(--err);font-size:12px;min-height:17px;margin-top:8px}
+  .qrb{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;align-items:flex-start}
+  .qrb img{width:120px;height:120px;border-radius:10px;background:#fff;padding:6px}
+  .warn{background:rgba(232,176,75,.1);border:1px dashed rgba(232,176,75,.5);color:var(--amber2);padding:10px 14px;border-radius:12px;font-size:12.5px;margin:10px 0}
+  .note{color:var(--dim);font-size:12px;margin-top:24px;border-top:1px solid var(--line);padding-top:14px;line-height:2}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);opacity:0;background:var(--card);backdrop-filter:blur(10px);border:1px solid var(--line);color:var(--txt);padding:10px 18px;border-radius:99px;font-size:13px;z-index:99;transition:all .3s;pointer-events:none}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:90;padding:16px}
+  .mbox{max-width:400px;width:100%;padding:24px}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+
+  <div id="loginView">
+    <div class="lb glass">
+      <div class="sw">
+        <svg viewBox="0 0 64 64" fill="none">
+          <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f5d47a"/><stop offset="1" stop-color="#c98f2b"/>
+          </linearGradient></defs>
+          <path d="M32 3l24 8v18c0 15-10.2 26.5-24 32C18.2 55.5 8 44 8 29V11l24-8z" fill="url(#sg)" opacity=".18"/>
+          <path d="M32 3l24 8v18c0 15-10.2 26.5-24 32C18.2 55.5 8 44 8 29V11l24-8z" stroke="url(#sg)" stroke-width="2.6" stroke-linejoin="round"/>
+          <path d="M32 16.5l13 4.5v9.5c0 8.4-5.5 15-13 18.5-7.5-3.5-13-10.1-13-18.5V21l13-4.5z" fill="url(#sg)" opacity=".38"/>
+          <rect x="26" y="28" width="12" height="10" rx="2.2" stroke="url(#sg)" stroke-width="2.4"/>
+          <path d="M28.4 28v-3.2a3.6 3.6 0 0 1 7.2 0V28" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="32" cy="33" r="1.7" fill="#f5d47a"/>
+          <path d="M32 33v4" stroke="#f5d47a" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1 id="xTitle">ورود امن</h1>
+      <p class="sub" id="xSub">امنیت شما، اولویت ماست</p>
+      <div class="lf">
+        <label id="xU">نام کاربری</label>
+        <input id="inU" type="text" autocomplete="off">
+        <label id="xP">رمز عبور</label>
+        <input id="inP" type="password">
+        <label id="xP2" class="hide">تکرار رمز</label>
+        <input id="inP2" type="password" class="hide">
+      </div>
+      <div class="msg" id="xMsg"></div>
+      <div class="acts">
+        <button class="btn btn-p" id="bGo">ورود ←</button>
+        <span class="pill" id="pLang">EN</span>
+        <span class="pill" id="pTheme">☾</span>
+      </div>
+      <div class="sub" style="margin-top:14px">SHA-256</div>
+    </div>
+  </div>
+
+  <div id="appView" class="hide">
+    <header class="bar glass">
+      <span class="brand">🛡 پنل ساب</span>
+      <span class="who" id="who"></span>
+      <span class="spacer" style="flex:1"></span>
+      <span class="pill" id="pLang2">EN</span>
+      <span class="pill" id="pTheme2">☾</span>
+      <button class="btn btn-g" id="bPass">رمز</button>
+      <button class="btn btn-g" id="bOut">خروج</button>
+    </header>
+
+    <div class="stats glass" style="padding:12px">
+      <div class="stat"><span>بخش‌ها</span><b id="kSec">0</b></div>
+      <div class="stat"><span>کانفیگ‌ها</span><b id="kCfg">0</b></div>
+      <div class="stat"><span>لینک‌ها</span><b id="kLnk">0</b></div>
+    </div>
+    <div class="warn" id="wDef"></div>
+    <div id="secs"></div>
+    <div style="text-align:center;margin-top:18px">
+      <button class="btn btn-p" id="bAdd">＋ افزودن بخش جدید</button>
+    </div>
+    <div class="note" id="noteF"></div>
+  </div>
+
+  <div class="modal hide" id="mPass">
+    <div class="mbox glass">
+      <h3 style="margin:0 0 14px">تغییر رمز</h3>
+      <div class="lf">
+        <label>رمز فعلی</label><input id="pmO" type="password">
+        <label>رمز جدید (حداقل ۵)</label><input id="pmN" type="password">
+        <label>تکرار رمز جدید</label><input id="pmN2" type="password">
+      </div>
+      <div class="msg" id="pmMsg" style="min-height:18px"></div>
+      <div style="display:flex;gap:10px;margin-top:10px">
+        <button class="btn btn-p" id="pmGo">ذخیره</button>
+        <button class="btn btn-g" id="pmX">بستن</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+var $=function(s){return document.querySelector(s)};
+var LS=window.localStorage;
+var S={lang:LS.getItem('p_lang')||'fa',theme:LS.getItem('p_theme')||'dark',
+       sess:null,role:null,user:null,tsess:null,tuser:'admin',secs:[],setup:false};
+var MODE='login';
+var T={
+ fa:{ti:'ورود امن',su:'امنیت شما، اولویت ماست',u:'نام کاربری',p:'رمز عبور',p2:'تکرار رمز',
+  np:'رمز جدید (حداقل ۵)',np2:'تکرار رمز جدید',go:'ورود ←',sv:'ذخیره',
+  ei:'نام کاربری و رمز را کامل وارد کن.',en:'نام کاربری یا رمز اشتباه است.',
+  es:'رمز حداقل ۵ نویسه باشد.',em:'تکرار رمز مطابقت ندارد.',
+  eu:'نام کاربری حداقل ۳ نویسه.',edb:'خطای سرور — تنظیمات Supabase در Vercel را بررسی کن.',
+  esess:'نشست منقضی شد — دوباره وارد شو.',okS:'رمز مدیر تعیین شد ✓',
+  ttl:'تعیین رمز مدیر',tsub:'رمز پیش‌فرض admin/admin را با رمز جدید جایگزین کن',
+  ph:'هر کانفیگ در یک خط…\nvless://uuid@host:443?type=ws&security=tls#نام',
+  mk:'ساخت لینک',cp:'کپی',rk:'تعویض آدرس',sh:'کوتاه‌سازی',qr:'QR',del:'حذف',
+  nl:'هنوز لینکی نیست — «ساخت لینک» را بزن.',
+  sav:'در حال ذخیره…',ok:'ذخیره شد ✓',err:'خطای ذخیره',
+  dcf:'این بخش حذف شود؟',shf:'کوتاه‌سازی نشد — لینک کامل را بده.',
+  shok:'لینک کوتاه شد ✓',kk:'آدرس جدید ساخته شد؛ لینک قدیمی از کار افتاد ✓',
+  cped:'کپی شد ✓',warn:'⚠️ رمز پیش‌فرض admin/admin فعال است — از «رمز» عوضش کن.',
+  f1:'آدرس لینک ثابت است؛ «تعویض آدرس» لینک قدیمی را از کار می‌اندازد.',
+  f2:'لینک ساب مثل رمز است؛ هر کس داشته باشد، کانفیگ‌ها را می‌بیند.',
+  f3:'لو رفت؟ فقط «تعویض آدرس» بزن.'},
+ en:{ti:'Secure Login',su:'Your security, our priority',u:'Username',p:'Password',p2:'Repeat',
+  np:'New password (min 5)',np2:'Repeat new',go:'Login →',sv:'Save',
+  ei:'Enter username and password.',en:'Wrong username or password.',
+  es:'Password must be 5+ chars.',em:'Passwords do not match.',
+  eu:'Username at least 3 chars.',edb:'Server error — check Supabase settings in Vercel.',
+  esess:'Session expired — login again.',okS:'Admin password set ✓',
+  ttl:'Set admin password',tsub:'Replace default admin/admin with a new password',
+  ph:'One config per line…\nvless://uuid@host:443?type=ws&security=tls#name',
+  mk:'Create link',cp:'Copy',rk:'Reset link',sh:'Shorten',qr:'QR',del:'Delete',
+  nl:'No link yet — hit Create link.',
+  sav:'Saving…',ok:'Saved ✓',err:'Save failed',
+  dcf:'Delete this section?',shf:'Shorten failed — use the full link.',
+  shok:'Short link ready ✓',kk:'New address created; old link is dead ✓',
+  cped:'Copied ✓',warn:'⚠️ Default admin/admin is active — change it via Password.',
+  f1:'Section links are permanent; Reset link kills the old one.',
+  f2:'A sub link is like a password — whoever has it sees the configs.',
+  f3:'Leaked? Just hit Reset link.'}
+};
+function t(k){var o=T[S.lang];return (o&&o[k])||T.fa[k]||k}
+function toast(m){var e=$('#toast');e.textContent=m;e.classList.add('show');
+ clearTimeout(toast._t);toast._t=setTimeout(function(){e.classList.remove('show')},2600)}
+function lmsg(m){$('#xMsg').textContent=m||''}
+async function api(path,body){
+ try{var r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+  return await r.json()}catch(e){return{ok:false,e:'net'}}}
+function mapErr(e){
+ var M={input:t('ei'),no:t('en'),short:t('es'),match:t('em'),user:t('eu'),
+  db:t('edb'),sess:t('esess'),owner:t('edb'),size:t('edb'),done:t('edb'),net:t('edb')};
+ return M[e]||t('edb')}
+
+function applyTheme(){
+ document.documentElement.setAttribute('data-theme',S.theme);
+ var ic=S.theme==='dark'?'☾':'☀';
+ $('#pTheme').textContent=ic;$('#pTheme2').textContent=ic;LS.setItem('p_theme',S.theme)}
+function applyLang(){
+ document.documentElement.setAttribute('lang',S.lang);
+ document.documentElement.setAttribute('dir',S.lang==='fa'?'rtl':'ltr');
+ var o=S.lang==='fa'?'EN':'FA';
+ $('#pLang').textContent=o;$('#pLang2').textContent=o;LS.setItem('p_lang',S.lang);
+ $('#xTitle').textContent=MODE==='setup'?t('ttl'):t('ti');
+ $('#xSub').textContent=MODE==='setup'?t('tsub'):t('su');
+ $('#xU').textContent=t('u');
+ $('#xP').textContent=MODE==='setup'?t('np'):t('p');
+ $('#xP2').textContent=MODE==='setup'?t('np2'):t('p2');
+ $('#bGo').textContent=MODE==='setup'?t('sv'):t('go');
+ $('#inP2').classList.toggle('hide',MODE==='login');
+ $('#inU').classList.toggle('hide',MODE==='setup');
+ $('#who').textContent=S.user?S.user+' · '+S.role:'';
+ $('#wDef').textContent=S.user==='admin'&&!LS.getItem('p_done')?t('warn'):'';
+ $('#wDef').classList.toggle('hide',!(S.user==='admin'&&!LS.getItem('p_done')));
+ $('#noteF').innerHTML='· '+t('f1')+'<br>· '+t('f2')+'<br>· '+t('f3')}
+function mkStars(){
+ var h='';for(var i=0;i<46;i++){var sz=(Math.random()*2.2+.6).toFixed(1);
+  h+='<i class="star" style="left:'+(Math.random()*100).toFixed(1)+'%;top:'+(Math.random()*100).toFixed(1)
+   +'%;width:'+sz+'px;height:'+sz+'px;animation-delay:'+(Math.random()*3).toFixed(1)+'s"></i>'}
+ $('#stars').innerHTML=h}
+
+function setMode(m){MODE=m;['inU','inP','inP2'].forEach(function(id){$('#'+id).value=''});lmsg('');applyLang()}
+async function doLogin(){
+ var u=$('#inU').value.trim(),p=$('#inP').value;
+ if(!u||!p)return lmsg(t('ei'));
+ $('#bGo').disabled=true;
+ var j=await api('/api/auth',{action:'login',u:u,p:p});
+ $('#bGo').disabled=false;
+ if(!j.ok)return lmsg(mapErr(j.e));
+ if(j.mustSetup){S.tsess=j.s;S.tuser=u;S.setup=true;setMode('setup');return}
+ enter(j)}
+async function doSetup(){
+ var p1=$('#inP').value,p2=$('#inP2').value;
+ if(p1.length<5)return lmsg(t('es'));
+ if(p1!==p2)return lmsg(t('em'));
+ $('#bGo').disabled=true;
+ var j=await api('/api/auth',{action:'setup',s:S.tsess,p1:p1,p2:p2});
+ if(!j.ok){$('#bGo').disabled=false;return lmsg(mapErr(j.e))}
+ var j2=await api('/api/auth',{action:'login',u:S.tuser||'admin',p:p1});
+ $('#bGo').disabled=false;
+ if(j2.ok&&!j2.mustSetup){LS.setItem('p_done','1');toast(t('okS'));enter(j2)}
+ else lmsg(t('edb'))}
+function enter(j){
+ S.sess=j.s;S.role=j.role;S.user=j.u;
+ LS.setItem('p_s',j.s);LS.setItem('p_r',j.role);LS.setItem('p_u',j.u);
+ $('#loginView').classList.add('hide');$('#appView').classList.remove('hide');
+ applyLang();load()}
+async function doOut(){
+ if(S.sess)await api('/api/auth',{action:'logout',s:S.sess});
+ ['p_s','p_r','p_u'].forEach(function(k){LS.removeItem(k)});
+ S.sess=S.role=S.user=null;S.secs=[];
+ $('#appView').classList.add('hide');$('#loginView').classList.remove('hide');
+ setMode('login')}
+
+async function load(){
+ var j=await api('/api/sections',{action:'list',s:S.sess});
+ if(!j.ok){toast(mapErr(j.e));return}
+ S.secs=j.list||[];
+ var h='';S.secs.forEach(function(sec){h+=secHtml(sec)});
+ $('#secs').innerHTML=h;
+ $('#kSec').textContent=S.secs.length;
+ $('#kLnk').textContent=S.secs.filter(function(x){return x.sub_key}).length;
+ $('#kCfg').textContent=S.secs.reduce(function(a,x){return a+((x.content||'').split('\n').filter(function(l){return l.trim()}).length)},0);
+ S.secs.forEach(bindSec)}
+function escH(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function secHtml(sec){
+ return '<div class="sec glass" id="c-'+sec.id+'">'
+ +'<div class="hd"><input id="ti-'+sec.id+'" value="'+escH(sec.title||'')+'" style="max-width:170px" placeholder="عنوان بخش">'
+ +'<span class="stt" id="sy-'+sec.id+'"></span></div>'
+ +'<textarea id="tx-'+sec.id+'" placeholder="'+escH(t('ph'))+'">'+escH(sec.content||'')+'</textarea>'
+ +'<div class="surl"><input id="li-'+sec.id+'" readonly placeholder="'+escH(t('nl'))+'" value="'+(sec.sub_key?location.origin+'/s/'+sec.sub_key:'')+'"></div>'
+ +'<div class="rb">'
+ +'<button class="btn btn-p" id="mk-'+sec.id+'">'+t('mk')+'</button>'
+ +'<button class="btn btn-g" id="cp-'+sec.id+'">'+t('cp')+'</button>'
+ +'<button class="btn btn-g" id="rk-'+sec.id+'">'+t('rk')+'</button>'
+ +'<button class="btn btn-g" id="sh-'+sec.id+'">'+t('sh')+'</button>'
+ +'<button class="btn btn-g" id="qr-'+sec.id+'">'+t('qr')+'</button>'
+ +'<button class="btn btn-g" style="color:var(--err)" id="dl-'+sec.id+'">'+t('del')+'</button>'
+ +'</div>'
+ +'<div class="e2" id="er-'+sec.id+'"></div>'
+ +'<div class="qrb hide" id="qb-'+sec.id+'"><img id="qi-'+sec.id+'" alt="QR"></div>'}
+function bindSec(sec){
+ var id=sec.id,tx=$('#tx-'+id),ti=$('#ti-'+id),li=$('#li-'+id);
+ var deb;
+ function saveNow(){
+  var sy=$('#sy-'+id);
+  sy.textContent=t('sav');sy.className='stt busy show';
+  api('/api/sections',{action:'save',s:S.sess,id:id,content:tx.value,title:ti.value}).then(function(j){
+   if(j.ok){sy.textContent=t('ok');sy.className='stt ok show';
+    setTimeout(function(){sy.classList.remove('show')},1800);
+    sec.content=tx.value;sec.title=ti.value;countUp()}
+   else{sy.textContent=t('err');sy.className='stt err show';
+    if(j.e==='sess')doOut()}})}
+ tx.addEventListener('input',function(){clearTimeout(deb);deb=setTimeout(saveNow,900)});
+ ti.addEventListener('input',function(){clearTimeout(deb);deb=setTimeout(saveNow,700)});
+ $('#mk-'+id).onclick=async function(){
+  var j=await api('/api/sections',{action:'key',s:S.sess,id:id});
+  if(!j.ok){$('#er-'+id).textContent=mapErr(j.e);return}
+  sec.sub_key=j.key;li.value=location.origin+'/s/'+j.key;toast('✓');countUp()};
+ $('#cp-'+id).onclick=async function(){
+  if(!li.value)return;
+  try{await navigator.clipboard.writeText(li.value);toast(t('cped'))}
+  catch(e){li.select();document.execCommand('copy');toast(t('cped'))}};
+ $('#rk-'+id).onclick=async function(){
+  if(!confirm(t('kk')))return;
+  var j=await api('/api/sections',{action:'key',s:S.sess,id:id});
+  if(!j.ok){$('#er-'+id).textContent=mapErr(j.e);return}
+  sec.sub_key=j.key;li.value=location.origin+'/s/'+j.key;toast(t('kk'))};
+ $('#sh-'+id).onclick=async function(){
+  if(!li.value)return;$('#er-'+id).textContent='';
+  try{var r=await fetch('https://is.gd/create.php?format=json&url='+encodeURIComponent(li.value));
+   var j=await r.json();
+   if(j&&j.shorturl){li.value=j.shorturl;toast(t('shok'))}
+   else{$('#er-'+id).textContent=t('shf')}}
+  catch(e){$('#er-'+id).textContent=t('shf')}};
+ $('#qr-'+id).onclick=function(){
+  if(!li.value)return;
+  var qb=$('#qb-'+id);
+  if(!qb.classList.contains('hide')){qb.classList.add('hide');return}
+  $('#qi-'+id).src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(li.value);
+  qb.classList.remove('hide')};
+ $('#dl-'+id).onclick=async function(){
+  if(!confirm(t('dcf')))return;
+  var j=await api('/api/sections',{action:'del',s:S.sess,id:id});
+  if(j.ok){$('#c-'+id).remove();S.secs=S.secs.filter(function(x){return x.id!==id});countUp()}
+  else toast(mapErr(j.e))}}
+function countUp(){
+ $('#kSec').textContent=S.secs.length;
+ $('#kLnk').textContent=S.secs.filter(function(x){return x.sub_key}).length;
+ $('#kCfg').textContent=S.secs.reduce(function(a,x){return a+((x.content||'').split('\n').filter(function(l){return l.trim()}).length)},0)}
+
+ $('#bAdd').onclick=async function(){
+ var j=await api('/api/sections',{action:'create',s:S.sess,title:''});
+ if(!j.ok)return toast(mapErr(j.e));
+ var sec=j.sec;S.secs.push(sec);
+ var d=document.createElement('div');d.innerHTML=secHtml(sec);
+ $('#secs').appendChild(d.firstChild);bindSec(sec);countUp()};
+ $('#bGo').onclick=function(){doLogin()};
+ $('#inP').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
+ $('#inP2').addEventListener('keydown',function(e){if(e.key==='Enter')if(MODE==='setup')doSetup();else doLogin()});
+ $('#pTheme').onclick=$('#pTheme2').onclick=function(){S.theme=S.theme==='dark'?'light':'dark';applyTheme()};
+ $('#pLang').onclick=$('#pLang2').onclick=function(){S.lang=S.lang==='fa'?'en':'fa';applyLang()};
+ $('#bOut').onclick=doOut;
+
+ $('#bPass').onclick=function(){$('#mPass').classList.remove('hide');$('#pmMsg').textContent=''};
+ $('#pmX').onclick=function(){$('#mPass').classList.add('hide')};
+ $('#pmGo').onclick=async function(){
+ var o=$('#pmO').value,n=$('#pmN').value,n2=$('#pmN2').value;
+ if(n.length<5)return $('#pmMsg').textContent=t('es');
+ if(n!==n2)return $('#pmMsg').textContent=t('em');
+ var j=await api('/api/auth',{action:'pass',s:S.sess,old:o,p1:n,p2:n2});
+ if(!j.ok)return $('#pmMsg').textContent=mapErr(j.e);
+ $('#mPass').classList.add('hide');['pmO','pmN','pmN2'].forEach(function(id){$('#'+id).value=''});
+ toast('✓');LS.setItem('p_done','1');applyLang()};
+
+applyTheme();applyLang();mkStars();
+(function(){
+ var sv=LS.getItem('p_s');
+ if(sv){
+  S.sess=sv;S.role=LS.getItem('p_r')||'user';S.user=LS.getItem('p_u')||'';
+  var j={s:S.sess,role:S.role,u:S.user};enter(j)}
+ else setMode('login')})();
+</script>
+</body>
+</html>
