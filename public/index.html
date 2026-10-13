@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sub Panel</title>
+<style>
+  :root{
+    --bg:#0b0e14; --bg2:#0e1220; --card:rgba(255,255,255,.04);
+    --line:rgba(255,255,255,.09); --txt:#eef1f6; --dim:#8b94a7;
+    --amber:#e8b04b; --amber2:#f5d47a; --ok:#5fbf77; --err:#e06c5f;
+    --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+    --star:rgba(255,255,255,.55);
+  }
+  html[data-theme="light"]{
+    --bg:#f2f4f8; --bg2:#e8ecf4; --card:rgba(255,255,255,.75);
+    --line:rgba(20,30,60,.12); --txt:#1c2333; --dim:#5a6478;
+    --star:rgba(30,40,80,.25);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--txt);
+    font:15px/1.75 Vazirmatn,Tahoma,"Segoe UI",sans-serif;
+    background:
+      radial-gradient(1100px 500px at 85% -10%, rgba(120,80,200,.16), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(40,120,200,.13), transparent 60%),
+      linear-gradient(180deg, var(--bg), var(--bg2));
+    min-height:100vh;
+    transition:background .3s, color .3s;
+  }
+  .stars{position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.8}
+  .star{position:absolute; background:var(--star); border-radius:50%; animation:tw 3s infinite alternate}
+  @keyframes tw{from{opacity:.15}to{opacity:.9}}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  .wrap{position:relative; z-index:1; max-width:980px; margin:0 auto; padding:22px 16px 70px}
+  .hide{display:none!important}
+  .glass{background:var(--card); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+         border:1px solid var(--line); border-radius:18px}
+  .btn{display:inline-flex; align-items:center; gap:8px; border:0; border-radius:12px; cursor:pointer;
+       font:inherit; font-size:14px; padding:10px 18px; transition:transform .15s, filter .15s}
+  .btn:active{transform:scale(.97)}
+  .btn-p{background:linear-gradient(135deg,var(--amber),var(--amber2)); color:#231a05; font-weight:800}
+  .btn-p:hover{filter:brightness(1.07)}
+  .btn-g{background:transparent; color:var(--dim); border:1px solid var(--line)}
+  .btn-g:hover{color:var(--txt)}
+  .btn:disabled{opacity:.5; cursor:default}
+  .ico{width:17px;height:17px;flex:none}
+
+  .topbar{display:flex; align-items:center; gap:10px; padding:12px 16px}
+  .topbar .brand{display:flex; align-items:center; gap:10px; font-weight:800; font-size:16px}
+  .topbar .grow{flex:1}
+  .pill{display:inline-flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--line);
+        border-radius:99px; padding:7px 13px; font-size:12.5px; color:var(--dim); cursor:pointer; user-select:none}
+  .pill:hover{color:var(--txt)}
+
+  .login-box{max-width:400px; margin:9vh auto 0; padding:34px 30px 30px; text-align:center; position:relative; overflow:hidden}
+  .login-box::before{content:""; position:absolute; inset:-40% -20% auto; height:75%;
+    background:radial-gradient(closest-side, rgba(232,176,75,.14), transparent 70%); pointer-events:none}
+  .shield-wrap{position:relative; z-index:1; animation:floaty 5s ease-in-out infinite}
+  .shield-wrap svg{width:84px; height:84px; filter:drop-shadow(0 6px 24px rgba(232,176,75,.45))}
+  .login-box h1{font-size:20px; margin:16px 0 4px; position:relative}
+  .login-box .sub{color:var(--dim); font-size:12.5px; margin:0 0 20px; position:relative}
+  .lf{ text-align:start; position:relative}
+  .lf label{display:block; font-size:12.5px; color:var(--dim); margin:14px 0 6px}
+  .lf input{width:100%; background:rgba(0,0,0,.25); border:1px solid var(--line); color:var(--txt);
+            border-radius:12px; padding:11px 14px; font-size:14px; outline:none; transition:border .2s}
+  html[data-theme="light"] .lf input{background:rgba(255,255,255,.8)}
+  .lf input:focus{border-color:var(--amber)}
+  .msg{min-height:21px; font-size:12.5px; margin-top:12px; color:var(--err); position:relative}
+  .login-actions{display:flex; justify-content:space-between; align-items:center; margin-top:18px; position:relative}
+
+  header.bar{display:flex; align-items:center; gap:10px; padding:12px 16px; margin-bottom:16px}
+  header.bar .brand{display:flex; align-items:center; gap:10px; font-weight:800}
+  header.bar .hint{color:var(--dim); font-size:12.5px}
+  .stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:14px 0}
+  .stat{padding:16px; text-align:center}
+  .stat b{display:block; font-size:26px; margin-top:2px}
+  .stat span{font-size:11.5px; color:var(--dim)}
+  .sec{padding:18px; margin-top:16px; position:relative}
+  .sec .head{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap}
+  .sec .head input{background:transparent; border:1px solid transparent; color:var(--txt); font:inherit; font-weight:700; border-radius:8px; padding:4px 8px; max-width:190px}
+  .sec .head input:hover{border-color:var(--line)}
+  .st{font-size:11.5px; opacity:0; transition:opacity .3s; margin-right:auto}
+  .st.show{opacity:1}
+  .st.ok{color:var(--ok)} .st.busy{color:var(--dim)} .st.err{color:var(--err)}
+  .sec textarea{direction:ltr; text-align:left; font-family:var(--mono); font-size:12.5px; line-height:1.65;
+                white-space:pre; overflow-x:auto; min-height:120px; resize:vertical;
+                background:rgba(0,0,0,.28); border:1px solid var(--line); color:var(--txt); border-radius:12px; padding:12px; outline:none}
+  html[data-theme="light"] .sec textarea{background:rgba(255,255,255,.85)}
+  .sec textarea:focus{border-color:var(--amber)}
+  .suburl{display:flex; gap:8px; margin-top:12px; align-items:center}
+  .suburl input{flex:1; min-width:200px; direction:ltr; text-align:left; font-family:var(--mono); font-size:12px;
+                background:rgba(0,0,0,.28); border:1px solid var(--line); color:#8fd3a0; border-radius:10px; padding:9px 12px}
+  html[data-theme="light"] .suburl input{background:rgba(255,255,255,.85); color:#2c7a4b}
+  .secerr{color:var(--err); font-size:12px; min-height:17px; margin-top:8px}
+  .qrbox{display:flex; gap:14px; align-items:flex-start; margin-top:14px; flex-wrap:wrap}
+  .qrbox img{width:120px; height:120px; border-radius:10px; background:#fff; padding:6px}
+  .rowbtns{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap}
+  .addnew{margin-top:18px; text-align:center}
+  .addnew .btn{min-width:210px; justify-content:center}
+  footer.note{color:var(--dim); font-size:12px; margin-top:26px; border-top:1px solid var(--line); padding-top:14px; line-height:2}
+  .toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(80px); opacity:0;
+         background:var(--card); backdrop-filter:blur(10px); border:1px solid var(--line); color:var(--txt);
+         padding:10px 18px; border-radius:99px; font-size:13px; z-index:99; transition:all .3s; pointer-events:none}
+  .toast.show{transform:translateX(-50%) translateY(0); opacity:1}
+
+  .atable{width:100%; border-collapse:collapse; font-size:13px}
+  .atable th{color:var(--dim); font-weight:400; font-size:11.5px; text-align:start; padding:8px 10px; border-bottom:1px solid var(--line)}
+  .atable td{padding:10px; border-bottom:1px solid var(--line)}
+  .tag{display:inline-block; padding:3px 10px; border-radius:99px; font-size:11px}
+  .tag.admin{background:rgba(232,176,75,.15); color:var(--amber); border:1px solid rgba(232,176,75,.4)}
+  .tag.user{background:rgba(120,140,200,.12); color:var(--dim); border:1px solid var(--line)}
+  .danger{color:var(--err)}
+  .warn{background:rgba(232,176,75,.1); border:1px dashed rgba(232,176,75,.5); color:var(--amber2);
+        padding:10px 14px; border-radius:12px; font-size:12.5px; margin:10px 0}
+
+  .modal{position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:90; padding:16px}
+  .modal .box{max-width:400px; width:100%; padding:24px}
+  [dir="rtl"] .modal .box{text-align:start}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+
+  <div id="loginView">
+    <div class="login-box glass">
+      <div class="shield-wrap">
+        <svg viewBox="0 0 64 64" fill="none">
+          <defs>
+            <linearGradient id="sg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f5d47a"/><stop offset="1" stop-color="#c98f2b"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 3l24 8v18c0 15-10.2 26.5-24 32C18.2 55.5 8 44 8 29V11l24-8z" fill="url(#sg)" opacity=".18"/>
+          <path d="M32 3l24 8v18c0 15-10.2 26.5-24 32C18.2 55.5 8 44 8 29V11l24-8z" stroke="url(#sg)" stroke-width="2.6" stroke-linejoin="round"/>
+          <path d="M32 16.5l13 4.5v9.5c0 8.4-5.5 15-13 18.5-7.5-3.5-13-10.1-13-18.5V21l13-4.5z" fill="url(#sg)" opacity=".38"/>
+          <rect x="26" y="28" width="12" height="10" rx="2.2" stroke="url(#sg)" stroke-width="2.4"/>
+          <path d="M28.4 28v-3.2a3.6 3.6 0 0 1 7.2 0V28" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="32" cy="33" r="1.7" fill="#f5d47a"/>
+          <path d="M32 33v4" stroke="#f5d47a" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1 id="t_loginTitle">Secure Login</h1>
+      <p class="sub" id="t_loginSub">Your security, our priority</p>
+
+      <div class="lf">
+        <label id="t_user">Username</label>
+        <input id="inUser" type="text" autocomplete="off">
+        <label id="t_pass">Password</label>
+        <input id="inPass" type="password">
+        <label id="t_pass2" class="hide">Repeat</label>
+        <input id="inPass2" type="password" class="hide">
+      </div>
+      <div class="msg" id="loginMsg"></div>
+      <div class="login-actions">
+        <button class="btn btn-p" id="btnLogin">Login →</button>
+        <span class="pill" id="pillReg"></span>
+        <span class="pill" id="pillLang">EN</span>
+        <span class="pill" id="pillTheme">☾</span>
+      </div>
+      <div class="sub" style="margin-top:16px" id="t_secured">Secured with SHA-256</div>
+    </div>
+  </div>
+
+  <div id="appView" class="hide">
+    <header class="bar glass">
+      <div class="brand">
+        <svg viewBox="0 0 64 64" width="26" height="26" fill="none">
+          <path d="M32 3l24 8v18c0 15-10.2 26.5-24 32C18.2 55.5 8 44 8 29V11l24-8z" stroke="#e8b04b" stroke-width="4" stroke-linejoin="round"/>
+        </svg>
+        <span id="t_panelTitle">Panel</span>
+      </div>
+      <div class="hint" id="whoami"></div>
+      <div style="flex:1"></div>
+      <span class="pill" id="pillLang2">EN</span>
+      <span class="pill" id="pillTheme2">☾</span>
+      <button class="btn btn-g" id="btnUsers">Users</button>
+      <button class="btn btn-g" id="btnPass">Password</button>
+      <button class="btn btn-g" id="btnLogout">Logout</button>
+    </header>
+
+    <div class="stats glass" id="statsRow" style="padding:12px">
+      <div class="stat"><span id="t_stSections">Sections</span><b id="stSections">0</b></div>
+      <div class="stat"><span id="t_stServers">Servers</span><b id="stServers">0</b></div>
+      <div class="stat"><span id="t_stLinks">Links</span><b id="stLinks">0</b></div>
+      <div class="stat"><span id="t_stSave">Last save</span><b id="stSave" style="font-size:14px">—</b></div>
+    </div>
+
+    <div class="warn" id="defWarn"></div>
+    <div id="sections"></div>
+
+    <div class="addnew">
+      <button class="btn btn-p" id="btnAdd">
+        <svg viewBox="0 0 24 24" class="ico" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span id="t_add">Add new section</span>
+      </button>
+    </div>
+
+    <footer class="note" id="t_footer"></footer>
+  </div>
+
+  <div class="modal hide" id="passModal">
+    <div class="box glass">
+      <h3 style="margin:0 0 14px" id="t_chpass">Change password</h3>
+      <div class="lf">
+        <label id="t_old2">Current password</label>
+        <input id="pmOld" type="password">
+        <label id="t_new2">New password (min 5)</label>
+        <input id="pmNew" type="password">
+        <label id="t_rep2">Repeat new</label>
+        <input id="pmNew2" type="password">
+      </div>
+      <div class="msg" id="pmMsg" style="min-height:19px"></div>
+      <div style="display:flex;gap:10px;margin-top:10px">
+        <button class="btn btn-p" id="pmSave">Save</button>
+        <button class="btn btn-g" id="pmClose">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hide" id="usersModal">
+    <div class="box glass" style="max-width:520px">
+      <h3 style="margin:0 0 14px" id="t_usersTitle">Users</h3>
+      <div id="usersList" style="max-height:55vh;overflow:auto"></div>
+      <div style="display:flex;margin-top:14px">
+        <button class="btn btn-g" id="umClose" style="margin-inline-start:auto">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ═══════════ ۱) دو زبان ═══════════ */
+const I18N = {
+  fa: {
+    loginTitle:'ورود امن', loginSub:'امنیت شما، اولویت ماست',
+    user:'نام کاربری', pass:'رمز عبور', pass2:'تکرار رمز',
+    passReg:'رمز عبور (حداقل ۵)', newpass:'رمز جدید (حداقل ۵)', repNew:'تکرار رمز جدید',
+    secured:'رمزنگاری SHA-256',
+    btnLogin:'ورود ←', btnRegister:'ثبت‌نام',
+    toRegister:'حساب ندارم · ثبت‌نام', toLogin:'بازگشت به ورود',
+    regTitle:'ساخت حساب', regSub:'برای پنل، حساب بساز',
+    setupTitle:'تعیین رمز مدیر', setupSub:'رمز پیش‌فرض admin/admin را با یک رمز جدید جایگزین کن',
+    e_input:'نام کاربری و رمز را کامل وارد کن.',
+    e_no:'نام کاربری یا رمز اشتباه است.',
+    e_short:'رمز حداقل ۵ نویسه باشد.',
+    e_match:'تکرار رمز مطابقت ندارد.',
+    e_exists:'این نام کاربری قبلاً گرفته شده.',
+    e_user:'نام کاربری حداقل ۳ نویسه.',
+    e_db:'خطای سرور — تنظیمات Supabase در Vercel را بررسی کن.',
+    e_sess:'نشست منقضی شد — دوباره وارد شو.',
+    okSetup:'رمز مدیر تعیین شد ✓',
+    panelTitle:'پنل ساب', logout:'خروج', chpass:'تغییر رمز', users:'کاربران',
+    stSections:'بخش‌ها', stServers:'کانفیگ‌ها', stLinks:'لینک‌ها', stSave:'آخرین ذخیره',
+    add:'افزودن بخش جدید',
+    defWarn:'⚠️ رمز پیش‌فرض admin/admin هنوز فعال است — از دکمه‌ی «تغییر رمز» همین حالا عوضش کن.',
+    ph_text:'هر کانفیگ در یک خط…\nvless://uuid@host:443?type=ws&security=tls#نام',
+    saving:'در حال ذخیره…', saved:'ذخیره شد ✓', saveErr:'خطای ذخیره',
+    mkLink:'ساخت لینک', chKey:'تعویض آدرس', shorten:'کوتاه‌سازی', qrBtn:'QR', delBtn:'حذف بخش',
+    copy:'کپی', copied:'کپی شد ✓', close:'بستن', save:'ذخیره',
+    linkLbl:'لینک ثابت این بخش:', noLink:'هنوز لینکی برای این بخش ساخته نشده — «ساخت لینک» را بزن.',
+    chpassTitle:'تغییر رمز عبور', old2:'رمز فعلی', new2:'رمز جدید (حداقل ۵)', rep2:'تکرار رمز جدید',
+    usersTitle:'مدیریت کاربران', roleAdmin:'ادمین', roleUser:'کاربر',
+    delConfirm:'همه‌ی بخش‌ها و لینک‌های این کاربر حذف می‌شود — مطمئنی؟',
+    secDelConfirm:'این بخش و لینکش حذف شود؟',
+    e_owner:'دسترسی نداری.', e_size:'متن بیش از حد طولانی است.',
+    shortFail:'کوتاه‌سازی نشد — لینک کامل را بده.', shortOk:'لینک کوتاه آماده شد ✓',
+    keyOk:'آدرس جدید ساخته شد — لینک قدیمی از کار افتاد ✓',
+    foot1:'آدرس لینک هر بخش ثابت است؛ «تعویض آدرس» لینک قدیمی را از کار می‌اندازد.',
+    foot2:'لینک ساب مثل رمز است؛ هر کس آن را داشته باشد، کانفیگ‌ها را می‌بیند.',
+    foot3:'لینکی لو رفت؟ فقط «تعویض آدرس» بزن.'
+  },
+  en: {
+    loginTitle:'Secure Login', loginSub:'Your security, our priority',
+    user:'Username', pass:'Password', pass2:'Repeat password',
+    passReg:'Password (min 5)', newpass:'New password (min 5)', repNew:'Repeat new password',
+    secured:'Secured with SHA-256',
+    btnLogin:'Login →', btnRegister:'Register',
+    toRegister:'No account? Register', toLogin:'Back to login',
+    regTitle:'Create account', regSub:'Create an account for the panel',
+    setupTitle:'Set admin password', setupSub:'Replace the default admin/admin with a new password',
+    e_input:'Enter username and password.',
+    e_no:'Wrong username or password.',
+    e_short:'Password must be at least 5 chars.',
+    e_match:'Passwords do not match.',
+    e_exists:'This username is taken.',
+    e_user:'Username at least 3 chars.',
+    e_db:'Server error — check Supabase settings in Vercel.',
+    e_sess:'Session expired — login again.',
+    okSetup:'Admin password set ✓',
+    panelTitle:'Sub Panel', logout:'Logout', chpass:'Password', users:'Users',
+    stSections:'Sections', stServers:'Configs', stLinks:'Links', stSave:'Last save',
+    add:'Add new section',
+    defWarn:'⚠️ Default admin/admin is still active — change it now via “Password”.',
+    ph_text:'One config per line…\nvless://uuid@host:443?type=ws&security=tls#name',
+    saving:'Saving…', saved:'Saved ✓', saveErr:'Save failed',
+    mkLink:'Create link', chKey:'Reset link', shorten:'Shorten', qrBtn:'QR', delBtn:'Delete',
+    copy:'Copy', copied:'Copied ✓', close:'Close', save:'Save',
+    linkLbl:'Permanent link of this section:', noLink:'No link yet — hit “Create link”.',
+    chpassTitle:'Change password', old2:'Current password', new2:'New password (min 5)', rep2:'Repeat new',
+    usersTitle:'Manage users', roleAdmin:'admin', roleUser:'user',
+    delConfirm:'All sections and links of this user will be deleted. Sure?',
+    secDelConfirm:'Delete this section and its link?',
+    e_owner:'Access denied.', e_size:'Text too large.',
+    shortFail:'Shorten failed — use the full link.', shortOk:'Short link ready ✓',
+    keyOk:'New address created — old link is dead ✓',
+    foot1:'Section links are permanent; “Reset link” kills the old one instantly.',
+    foot2:'A sub link is like a password — whoever has it sees the configs.',
+    foot3:'Link leaked? Just hit “Reset link”.'
+  }
+};
+
+/* ═══════════ ۲) وضعیت و ابزار ═══════════ */
+const $ = s => document.querySelector(s);
+const LS = window.localStorage;
+const S = { lang: LS.getItem('sp_lang')||'fa', theme: LS.getItem('sp_theme')||'dark',
+            sess:null, role:null, user:null, tempSess:null, tempUser:'admin',
+            defActive:false, secs:[] };
+let MODE = 'login';
+const t = k => (I18N[S.lang] && I18N[S.lang][k]) || I18N.fa[k] || k;
+
+function toast(m){ const el=$('#toast'); el.textContent=m; el.classList.add('show');
+  clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('show'),2600); }
+
+async function api(path, body){
+  try{
+    const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body||{}) });
+    return await r.json();
+  }catch(e){ return { ok:false, e:'net' }; }
+}
+function mapErr(e){
+  return ({ input:t('e_input'), no:t('e_no'), short:t('e_short'), match:t('e_match'),
+    exists:t('e_exists'), user:t('e_user'), db:t('e_db'), sess:t('e_sess'),
+    owner:t('e_owner'), size:t('e_size'), done:t('e_db'), net:t('e_db') })[e] || t('e_db');
+}
+function lmsg(m){ $('#loginMsg').textContent = m || ''; }
+
+/* ═══════════ ۳) تم / زبان / ستاره‌ها ═══════════ */
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', S.theme);
+  const ic = S.theme==='dark' ? '☾' : '☀';
+  if($('#pillTheme'))  $('#pillTheme').textContent  = ic;
+  if($('#pillTheme2')) $('#pillTheme2').textContent = ic;
+  LS.setItem('sp_theme', S.theme);
+}
+function applyLang(){
+  document.documentElement.setAttribute('lang', S.lang);
+  document.documentElement.setAttribute('dir', S.lang==='fa' ? 'rtl' : 'ltr');
+  const other = S.lang==='fa' ? 'EN' : 'FA';
+  if($('#pillLang'))  $('#pillLang').textContent  = other;
+  if($('#pillLang2')) $('#pillLang2').textContent = other;
+  LS.setItem('sp_lang', S.lang);
+  renderLoginTexts(); renderStaticTexts();
+}
+function makeStars(){
+  const host = $('#stars'); if(!host) return;
+  let h = '';
+  for(let i=0;i<46;i++){
+    const sz = (Math.random()*2.2+0.6).toFixed(1);
+    h += '<i class="star" style="left:'+(Math.random()*100).toFixed(1)+'%;top:'+(Math.random()*100).toFixed(1)
+      + '%;width:'+sz+'px;height:'+sz+'px;animation-delay:'+(Math.random()*3).toFixed(1)+'s"></i>';
+  }
+  host.innerHTML = h;
+}
+
+/* ═══════════ ۴) متن‌های ثابت ═══════════ */
+function renderStaticTexts(){
+  $('#t_panelTitle').textContent = t('panelTitle');
+  $('#btnLogout').textContent = t('logout');
+  $('#btnPass').textContent    = t('chpass');
+  $('#btnUsers').textContent  = t('users');
+  $('#t_add').textContent      = t('add');
+  $('#t_stSections').textContent = t('stSections');
+  $('#t_stServers').textContent  = t('stServers');
+  $('#t_stLinks').textContent    = t('stLinks');
+  $('#t_stSave').textContent     = t('stSave');
+  $('#defWarn').textContent = t('defWarn');
+  $('#t_footer').innerHTML = '· '+t('foot1')+'<br>· '+t('foot2')+'<br>· '+t('foot3');
+  $('#t_chpass').textContent = t('chpassTitle');
+  $('#t_old2').textContent = t('old2');
+  $('#t_new2').textContent = t('new2');
+  $('#t_rep2').textContent = t('rep2');
+  $('#pmSave').textContent = t('save');
+  $('#pmClose').textContent = t('close');
+  $('#t_usersTitle').textContent = t('usersTitle');
+  $('#umClose').textContent = t('close');
+  $('#whoami').textContent = S.user ? (S.user+' · '+(S.role==='admin'?t('roleAdmin'):t('roleUser'))) : '';
+}
+
+/* ═══════════ ۵) فرم لاگین ═══════════ */
+function renderLoginTexts(){
+  $('#t_loginTitle').textContent = MODE==='setup' ? t('setupTitle') : MODE==='register' ? t('regTitle') : t('loginTitle');
+  $('#t_loginSub').textContent   = MODE==='setup' ? t('setupSub')   : MODE==='register' ? t('regSub')   : t('loginSub');
+  $('#t_user').textContent  = t('user');
+  $('#t_pass').textContent  = MODE==='setup' ? t('newpass') : MODE==='register' ? t('passReg') : t('pass');
+  $('#t_pass2').textContent = MODE==='setup' ? t('repNew') : t('pass2');
+  $('#t_secured').textContent = t('secured');
+  $('#btnLogin').textContent = MODE==='setup' ? t('save') : MODE==='register' ? t('btnRegister') : t('btnLogin');
+  const rp = $('#pillReg');
+  if(rp){ rp.classList.toggle('hide', MODE==='setup');
+          rp.textContent = MODE==='register' ? t('toLogin') : t('toRegister'); }
+}
+function setMode(m){
+  MODE = m;
+  $('#inUser').classList.toggle('hide', m==='setup');
+  $('#inPass2').classList.toggle('hide', m==='login');
+  ['inUser','inPass','inPass2'].forEach(id=>$('#'+id).value='');
+  lmsg('');
+  renderLoginTexts();
+}
+function onLoginBtn(){
+  if(MODE==='login')    return doLogin();
+  if(MODE==='register') return doRegister();
+  if(MODE==='setup')    return doSetup();
+}
+async function doLogin(){
+  const u = $('#inUser').value.trim(), p = $('#inPass').value;
+  if(!u || !p) return lmsg(t('e_input'));
+  const btn = $('#btnLogin'); btn.disabled = true;
+  const j = await api('/api/auth', { action:'login', u, p });
+  btn.disabled = false;
+  if(!j.ok) return lmsg(mapErr(j.e));
+  if(j.mustSetup){ S.tempSess=j.s; S.tempUser=u; setMode('setup'); return; }
+  enterWith(j);
+}
+async function doRegister(){
+  const u=$('#inUser').value.trim(), p=$('#inPass').value, p2=$('#inPass2').value;
+  if(u.length<3) return lmsg(t('e_user'));
+  if(p.length<5) return lmsg(t('e_short'));
+  if(p!==p2)     return lmsg(t('e_match'));
+  const btn=$('#btnLogin'); btn.disabled=true;
+  const j = await api('/api/auth', { action:'register', u, p });
+  btn.disabled=false;
+  if(!j.ok) return lmsg(mapErr(j.e));
+  enterWith(j);
+}
+async function doSetup(){
+  const p1=$('#inPass').value, p2=$('#inPass2').value;
+  if(p1.length<5) return lmsg(t('e_short'));
+  if(p1!==p2)     return lmsg(t('e_match'));
+  const btn=$('#btnLogin'); btn.disabled=true;
+  const j = await api('/api/auth', { action:'setup', s:S.tempSess, p1, p2 });
+  btn.disabled=false;
+  if(!j.ok) return lmsg(mapErr(j.e));
+  toast(t('okSetup'));
+  const j2 = await api('/api/auth', { action:'login', u:S.tempUser||'admin', p:p1 });
+  if(j2.ok && !j2.mustSetup){ enterWith(j2); }
+  else lmsg(t('e_db'));
+}
+function enterWith(j){
+  S.sess=j.s; S.role=j.role; S.user=j.u;
+  LS.setItem('sp_sess',  j.s);
+  LS.setItem('sp_role',  j.role);
+  LS.setItem('sp_user',  j.u);
+  enterApp();
+}
+async function doLogout(){
+  if(S.sess) await api('/api/auth', { action:'logout', s:S.sess });
+  ['sp_sess','sp_role','sp_user'].forEach(k=>LS.removeItem(k));
+  S.sess=S.role=S.user=null; S.secs=[];
+  $('#appView').classList.add('hide');
+  $('#loginView').classList.remove('hide');
+  setMode('login');
+}
+
+/* ═══════════ ۶) ورود به پنل ═══════════ */
+function enterApp(){
+  api('/api/sections', { action:'list', s:S.sess }).then(j=>{
+    if(!j.ok){
+      if(j.e==='sess'){
+        ['sp_sess','sp_role','sp_user'].forEach(k=>LS.removeItem(k));
+        S.sess=S.role=S.user=null;
+        $('#loginView').classList.remove('hide');
+        $('#appView').classList.add('hide');
+        setMode('login'); lmsg(t('e_sess'));
+        return;
+      }
+      toast(t('e_db')); return;
+    }
+    $('#loginView').classList.add('hide');
+    $('#appView').classList.remove('hide');
+    $('#btnUsers').classList.toggle('hide', S.role!=='admin');
+    S.defActive = (S.user==='admin' && !LS.getItem('sp_setup_done'));
+    $('#defWarn').classList.toggle('hide', !S.defActive);
+    loadSections();
+    renderStaticTexts();
+  });
+}
+
+/* ═══════════ ۷) بخش‌ها ═══════════ */
+async function loadSections(){
+  const j = await api('/api/sections', { action:'list', s:S.sess });
+  if(!j.ok){ toast(mapErr(j.e)); return; }
+  S.secs = j.list || [];
+  renderSections(); renderStats();
+}
+function renderStats(){
+  const cfgs = S.secs.reduce((a,s)=>a + (s.content||'').split('\n').filter(l=>l.trim()).length, 0);
+  const links = S.secs.filter(s=>s.sub_key).length;
+  $('#stSections').textContent = String(S.secs.length);
+  $('#stServers').textContent  = String(cfgs);
+  $('#stLinks').textContent    = String(links);
+}
+function escHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function secEl(sec){
+  const box = document.createElement('div');
+  box.className='sec glass'; box.id='sec-'+sec.id;
+  box.innerHTML = `
+    <div class="head">
+      <input id="ti-${sec.id}" value="${escHtml(sec.title||'')}" style="max-width:190px">
+      <span class="st" id="st-${sec.id}"></span>
+    </div>
+    <textarea id="tx-${sec.id}" placeholder="${escHtml(t('ph_text'))}"></textarea>
+    <div class="suburl">
+      <input id="li-${sec.id}" readonly placeholder="${escHtml(t('noLink'))}">
+    </div>
+    <div class="rowbtns">
+      <button class="btn btn-p" id="mk-${sec.id}">${t('mkLink')}</button>
+      <button class="btn btn-g" id="cp-${sec.id}">${t('copy')}</button>
+      <button class="btn btn-g" id="rk-${sec.id}">${t('chKey')}</button>
+      <button class="btn btn-g" id="sh-${sec.id}">${t('shorten')}</button>
+      <button class="btn btn-g" id="qr-${sec.id}">${t('qrBtn')}</button>
+      <button class="btn btn-g danger" id="dl-${sec.id}">${t('delBtn')}</button>
+    </div>
+    <div class="secerr" id="er-${sec.id}"></div>
+    <div class="qrbox hide" id="qb-${sec.id}">
+      <img id="qi-${sec.id}" alt="QR">
+      <div style="flex:1;min-width:220px">
+        <div style="font-size:12px;color:var(--dim);margin-bottom:8px" id="qn-${sec.id}"></div>
+        <input id="qs-${sec.id}" readonly style="width:100%;direction:ltr;text-align:left;font-family:var(--mono);font-size:12px;background:rgba(0,0,0,.28);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 12px">
+      </div>
+    </div>`;
+  const tx=$('#tx-'+sec.id); tx.value = sec.content||'';
+  const li=$('#li-'+sec.id);
+  li.value = sec.sub_key ? location.origin+'/s/'+sec.sub_key : '';
+
+  let deb;
+  tx.addEventListener('input', ()=>{
+    clearTimeout(deb);
+    deb = setTimeout(()=> pushSave(sec.id, tx.value, $('#ti-'+sec.id).value), 900);
+  });
+  $('#ti-'+sec.id).addEventListener('input', ()=>{
+    clearTimeout(deb);
+    deb = setTimeout(()=> pushSave(sec.id, tx.value, $('#ti-'+sec.id).value), 700);
+  });
+
+  $('#mk-'+sec.id).onclick = async ()=>{
+    const j = await api('/api/sections', { action:'key', s:S.sess, id:sec.id });
+    if(!j.ok){ $('#er-'+sec.id).textContent=mapErr(j.e); return; }
+    sec.sub_key = j.key;
+    $('#li-'+sec.id).value = location.origin+'/s/'+j.key;
+    toast('✓'); renderStats();
+  };
+  $('#cp-'+sec.id).onclick = async ()=>{
+    if(!li.value) return;
+    try{ await navigator.clipboard.writeText(li.value); toast(t('copied')); }
+    catch(e){ li.select(); document.execCommand('copy'); toast(t('copied')); }
+  };
+  $('#rk-'+sec.id).onclick = async ()=>{
+    const j = await api('/api/sections', { action:'key', s:S.sess, id:sec.id });
+    if(!j.ok){ $('#er-'+sec.id).textContent=mapErr(j.e); return; }
+    sec.sub_key=j.key;
+    li.value = location.origin+'/s/'+j.key;
+    toast(t('keyOk'));
+  };
+  $('#sh-'+sec.id).onclick = async ()=>{
+    if(!li.value) return;
+    $('#er-'+sec.id).textContent='';
+    try{
+      const u = 'https://is.gd/create.php?format=json&url='+encodeURIComponent(li.value);
+      const r = await fetch(u); const j = await r.json();
+      if(j && j.shorturl){ li.value=j.shorturl; toast(t('shortOk')); }
+      else { $('#er-'+sec.id).textContent=t('shortFail'); }
+    }catch(e){ $('#er-'+sec.id).textContent=t('shortFail'); }
+  };
+  $('#qr-'+sec.id).onclick = ()=>{
+    if(!li.value) return;
+    const qb=$('#qb-'+sec.id);
+    if(!qb.classList.contains('hide')){ qb.classList.add('hide'); return; }
+    $('#qi-'+sec.id).src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(li.value);
+    $('#qn-'+sec.id).textContent=t('linkLbl');
+    $('#qs-'+sec.id).value=li.value;
+    qb.classList.remove('hide');
+  };
+  $('#dl-'+sec.id).onclick = async ()=>{
+    if(!confirm(t('secDelConfirm'))) return;
+    const j = await api('/api/sections', { action:'del', s:S.sess, id:sec.id });
+    if(j.ok){ box.remove(); S.secs=S.secs.filter(x=>x.id!==sec.id); renderStats(); }
+    else toast(mapErr(j.e));
+  };
+  return box;
+}
+async function pushSave(id, content, title){
+  const stEl=$('#st-'+id), erEl=$('#er-'+id);
+  stEl.textContent=t('saving'); stEl.className='st busy show';
+  const j = await api('/api/sections', { action:'save', s:S.sess, id, content, title });
+  if(j.ok){
+    const now=new Date();
+    $('#stSave').textContent=now.toLocaleTimeString(S.lang==='fa'?'fa-IR':'en-US',{hour:'2-digit',minute:'2-digit'});
+    stEl.textContent=t('saved'); stEl.className='st ok show';
+    setTimeout(()=>stEl.classList.remove('show'),1800);
+    const s=S.secs.find(x=>x.id===id); if(s){ s.content=content; s.title=title; }
+    renderStats();
+  }else{
+    stEl.textContent=t('saveErr'); stEl.className='st err show';
+    if(j.e==='sess') doLogout();
+  }
+}
+function renderSections(){
+  const host=$('#sections'); host.innerHTML='';
+  S.secs.forEach(sec=>host.appendChild(secEl(sec)));
+}
+ $('#btnAdd').onclick = async ()=>{
+  const j = await api('/api/sections', { action:'create', s:S.sess, title:'' });
+  if(j.ok){ S.secs.push(j.sec); $('#sections').appendChild(secEl(j.sec)); renderStats(); }
+  else toast(mapErr(j.e));
+};
+
+/* ═══════════ ۸) تغییر رمز ═══════════ */
+ $('#btnPass').onclick = ()=>{ $('#passModal').classList.remove('hide'); $('#pmMsg').textContent=''; };
+ $('#pmClose').onclick = ()=> $('#passModal').classList.add('hide');
+ $('#pmSave').onclick = async ()=>{
+  const old=$('#pmOld').value, p1=$('#pmNew').value, p2=$('#pmNew2').value;
+  if(p1.length<5) return $('#pmMsg').textContent=t('e_short');
+  if(p1!==p2)     return $('#pmMsg').textContent=t('e_match');
+  const j = await api('/api/auth', { action:'pass', s:S.sess, old, p1, p2 });
+  if(!j.ok) return $('#pmMsg').textContent=mapErr(j.e);
+  $('#passModal').classList.add('hide');
+  ['pmOld','pmNew','pmNew2'].forEach(id=>$('#'+id).value='');
+  toast('✓ '+(S.lang==='fa'?'رمز عوض شد':'Password changed'));
+  if(S.defActive){
+    S.defActive=false; $('#defWarn').classList.add('hide'); LS.setItem('sp_setup_done','1');
+  }
+};
+
+/* ═══════════ ۹) کاربران (ادمین) ═══════════ */
+ $('#btnUsers').onclick = async ()=>{
+  const j = await api('/api/admin', { action:'users', s:S.sess });
+  if(!j.ok) return toast(mapErr(j.e));
+  window._users = j.list;
+  renderUsers();
+  $('#usersModal').classList.remove('hide');
+};
+function renderUsers(){
+  const host=$('#usersList');
+  if(!window._users || !window._users.length){ host.innerHTML='<div style="color:var(--dim)">'+(S.lang==='fa'?'کاربری نیست':'No users')+'</div>'; return; }
+  let h='<table class="atable"><tr><th>'+(S.lang==='fa'?'نام':'Name')+'</th><th>'+(S.lang==='fa'?'نقش':'Role')+'</th><th></th></tr>';
+  window._users.forEach((u,i)=>{
+    const self = (u.username===S.user);
+    h+='<tr><td>'+escHtml(u.username)+(self?' ✦':'')+'</td>'
+      +'<td><span class="tag '+u.role+'">'+(u.role==='admin'?t('roleAdmin'):t('roleUser'))+'</span></td>'
+      +'<td style="white-space:nowrap">'
+      + (self?'':( '<button class="btn btn-g" style="padding:6px 10px;font-size:12px" onclick="uRole('+i+')">'+(S.lang==='fa'?'نقش':'role')+'</button> '
+                 + '<button class="btn btn-g danger" style="padding:6px 10px;font-size:12px" onclick="uDel('+i+')">'+(S.lang==='fa'?'حذف':'del')+'</button>'))
+      +'</td></tr>';
+  });
+  host.innerHTML=h+'</table>';
+}
+window.uRole = async (i)=>{
+  const u = window._users && window._users[i]; if(!u) return;
+  const newRole = u.role==='admin' ? 'user' : 'admin';
+  const j = await api('/api/admin', { action:'role', s:S.sess, id:u.id, r:newRole });
+  if(j.ok){ u.role=newRole; renderUsers(); }
+  else toast(mapErr(j.e));
+};
+window.uDel = async (i)=>{
+  const u = window._users && window._users[i]; if(!u) return;
+  if(!confirm(t('delConfirm'))) return;
+  const j = await api('/api/admin', { action:'del', s:S.sess, id:u.id });
+  if(j.ok){ window._users.splice(i,1); renderUsers(); }
+  else toast(mapErr(j.e));
+};
+ $('#umClose').onclick = ()=> $('#usersModal').classList.add('hide');
+
+/* ═══════════ ۱۰) راه‌اندازی ═══════════ */
+ $('#btnLogin').onclick = onLoginBtn;
+ $('#inPass').addEventListener('keydown',  e=>{ if(e.key==='Enter') onLoginBtn(); });
+ $('#inPass2').addEventListener('keydown', e=>{ if(e.key==='Enter') onLoginBtn(); });
+ $('#pillTheme').onclick  = $('#pillTheme2').onclick  = () => { S.theme = S.theme==='dark'?'light':'dark'; applyTheme(); };
+ $('#pillLang').onclick   = $('#pillLang2').onclick   = () => { S.lang  = S.lang==='fa'?'en':'fa';           applyLang(); };
+ $('#pillReg').onclick = () => setMode(MODE==='register' ? 'login' : 'register');
+ $('#btnLogout').onclick = doLogout;
+applyTheme(); applyLang(); makeStars();
+(function boot(){
+  const sv = LS.getItem('sp_sess');
+  if(sv){
+    S.sess = sv; S.role = LS.getItem('sp_role')||'user'; S.user = LS.getItem('sp_user')||'';
+    enterApp();
+  } else setMode('login');
+})();
+</script>
+</body>
+</html>
