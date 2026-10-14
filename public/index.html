@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel Vercel Sub</title>
+<style>
+  :root{--bg:#0b0e14;--bg2:#101623;--card:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);
+    --txt:#eef1f6;--dim:#8b94a7;--amber:#e8b04b;--amber2:#f5d47a;--ok:#5fbf77;--err:#e06c5f;
+    --blue:#6ea8ff;--purple:#a78bfa;--purpleGlow:rgba(139,92,246,.55);
+    --mono:ui-monospace,Consolas,monospace;--star:rgba(255,255,255,.5)}
+  html[data-theme=light]{--bg:#f5f7fd;--bg2:#eceff9;--card:rgba(255,255,255,.85);--line:rgba(30,40,80,.13);
+    --txt:#1c2333;--dim:#5a6478;--star:rgba(70,90,180,.2)}
+  *{box-sizing:border-box}
+  body{margin:0;color:var(--txt);font:15px/1.75 Vazirmatn,Tahoma,sans-serif;min-height:100vh;
+    background:linear-gradient(180deg,var(--bg),var(--bg2));transition:background .3s,color .3s}
+  html[data-theme=dark] body{background:
+    radial-gradient(1100px 500px at 85% -10%,rgba(120,80,200,.16),transparent 60%),
+    radial-gradient(900px 500px at -10% 110%,rgba(40,120,200,.13),transparent 60%),
+    linear-gradient(180deg,var(--bg),var(--bg2))}
+  html[data-theme=light] body{background:
+    radial-gradient(1100px 520px at 88% -12%,rgba(90,130,255,.2),transparent 62%),
+    radial-gradient(900px 520px at -12% 112%,rgba(255,176,75,.18),transparent 60%),
+    linear-gradient(180deg,var(--bg),var(--bg2))}
+  .stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+  .star{position:absolute;background:var(--star);border-radius:50%;animation:tw 3s infinite alternate}
+  @keyframes tw{from{opacity:.15}to{opacity:.9}}
+  @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+  @keyframes spinIn{from{transform:rotate(-120deg) scale(.6);opacity:0}to{transform:rotate(0) scale(1);opacity:1}}
+  .wrap{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:20px 16px 70px}
+  .hide{display:none!important}
+  .glass{background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--line);border-radius:18px}
+  html[data-theme=light] .glass{box-shadow:0 10px 30px rgba(40,60,120,.08)}
+
+  /* ── دکمه‌ها با لامپ بنفش ── */
+  .btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:12px;cursor:pointer;
+    font:inherit;font-size:14px;padding:10px 18px;transition:transform .15s,box-shadow .25s,filter .15s;
+    box-shadow:0 6px 18px -4px var(--purpleGlow), 0 2px 0 rgba(255,255,255,.06) inset}
+  .btn:active{transform:scale(.97)}
+  .btn-p{background:linear-gradient(135deg,var(--amber),var(--amber2));color:#231a05;font-weight:800;
+    box-shadow:0 8px 26px -4px var(--purpleGlow), 0 10px 34px rgba(232,176,75,.35),
+    0 2px 0 rgba(255,255,255,.5) inset}
+  .btn-p:hover{filter:brightness(1.07);box-shadow:0 10px 34px -2px var(--purpleGlow),
+    0 14px 44px rgba(232,176,75,.45), 0 2px 0 rgba(255,255,255,.5) inset}
+  .btn-g{background:transparent;color:var(--dim);border:1px solid var(--line);
+    box-shadow:0 5px 16px -6px var(--purpleGlow)}
+  .btn-g:hover{color:var(--txt);box-shadow:0 7px 22px -4px var(--purpleGlow)}
+  .btn:disabled{opacity:.5;cursor:default}
+
+  /* ── پیل‌های خلاقانه (زبان/تم) ── */
+  .pill{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    background:var(--card);border:1px solid var(--line);border-radius:99px;padding:8px 15px;
+    font-size:12.5px;font-weight:700;color:var(--dim);cursor:pointer;user-select:none;
+    transition:all .25s;box-shadow:0 5px 16px -6px var(--purpleGlow)}
+  .pill:hover{color:var(--txt);transform:translateY(-1px);
+    box-shadow:0 8px 24px -4px var(--purpleGlow), 0 0 0 3px rgba(167,139,250,.18)}
+  .pill svg{display:block;transition:transform .4s}
+  .pill:hover svg{transform:rotate(24deg) scale(1.12)}
+  .pill:active svg{animation:spinIn .45s ease}
+  .pill .lbl{letter-spacing:.4px}
+
+  .lb{max-width:390px;margin:8vh auto 0;padding:34px 28px 26px;text-align:center;position:relative;overflow:hidden}
+  .lb::before{content:"";position:absolute;inset:-40% -20% auto;height:70%;
+    background:radial-gradient(closest-side,rgba(232,176,75,.14),transparent 70%);pointer-events:none}
+  .sw{position:relative;animation:fl 5s ease-in-out infinite}
+  .sw svg{width:80px;height:80px;filter:drop-shadow(0 6px 24px rgba(232,176,75,.45))}
+  .lb h1{font-size:19px;margin:14px 0 4px;position:relative}
+  .lb .sub{color:var(--dim);font-size:12px;margin:0 0 18px;position:relative}
+  .lf{text-align:start;position:relative}
+  .lf label{display:block;font-size:12px;color:var(--dim);margin:13px 0 6px}
+  .lf input{width:100%;background:rgba(0,0,0,.25);border:1px solid var(--line);color:var(--txt);
+    border-radius:12px;padding:11px 14px;font-size:14px;outline:none}
+  html[data-theme=light] .lf input{background:#fff}
+  .lf input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(167,139,250,.25)}
+  .msg{min-height:20px;font-size:12px;margin-top:12px;color:var(--err);position:relative}
+  .acts{display:flex;justify-content:space-between;align-items:center;margin-top:16px;position:relative;flex-wrap:wrap;gap:10px}
+  .bar{display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:12px;flex-wrap:wrap}
+  .bar .brand{font-weight:800}
+  .bar .who{color:var(--dim);font-size:12.5px}
+  .spacer{flex:1}
+
+  /* ── منو با آیکون‌های SVG رنگی ── */
+  .menu{display:flex;gap:6px;padding:8px;margin-bottom:14px;flex-wrap:wrap}
+  .tab{flex:1;min-width:96px;justify-content:center;display:inline-flex;align-items:center;gap:7px;
+    border:0;background:transparent;color:var(--dim);font:inherit;font-size:13px;padding:10px 10px;
+    border-radius:12px;cursor:pointer;transition:all .2s}
+  .tab svg{width:17px;height:17px;flex:none;transition:transform .25s}
+  .tab:hover:not(.on){color:var(--txt);transform:translateY(-1px)}
+  .tab:hover:not(.on) svg{transform:scale(1.18) rotate(-8deg)}
+  .tab.on{background:linear-gradient(135deg,rgba(167,139,250,.22),rgba(232,176,75,.18));
+    color:var(--txt);font-weight:800;border:1px solid rgba(167,139,250,.35);
+    box-shadow:0 6px 20px -6px var(--purpleGlow)}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:12px 0}
+  .stat{padding:16px;text-align:center;transition:transform .2s,box-shadow .25s}
+  .stat:hover{transform:translateY(-2px);box-shadow:0 10px 26px -8px var(--purpleGlow)}
+  .stat b{display:block;font-size:24px;margin-top:2px}
+  .stat span{font-size:11px;color:var(--dim)}
+  .pad{padding:18px}
+  .sec{padding:18px;margin-top:16px;transition:box-shadow .25s}
+  .sec:hover{box-shadow:0 10px 30px -10px var(--purpleGlow)}
+  .sec .hd{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+  .num{font-weight:800;color:var(--amber);font-size:14px;flex:none}
+  .sec .hd input{background:transparent;border:1px solid transparent;color:var(--txt);font:inherit;
+    font-weight:700;border-radius:8px;padding:4px 8px;max-width:170px}
+  .sec .hd input:hover{border-color:var(--line)}
+  .stt{font-size:11.5px;opacity:0;transition:opacity .3s;margin-right:auto}
+  .stt.show{opacity:1}
+  .stt.ok{color:var(--ok)}.stt.err{color:var(--err)}.stt.busy{color:var(--dim)}
+  .sec textarea{direction:ltr;text-align:left;font-family:var(--mono);font-size:12.5px;line-height:1.65;
+    white-space:pre;overflow-x:auto;min-height:130px;resize:vertical;background:rgba(0,0,0,.28);
+    border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:12px;outline:none;width:100%}
+  html[data-theme=light] .sec textarea{background:#fff}
+  .sec textarea:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(167,139,250,.22)}
+  .surl{display:flex;gap:8px;margin-top:12px;align-items:center}
+  .surl input{flex:1;min-width:200px;direction:ltr;text-align:left;font-family:var(--mono);font-size:12px;
+    background:rgba(0,0,0,.28);border:1px solid var(--line);color:#8fd3a0;border-radius:10px;padding:9px 12px}
+  html[data-theme=light] .surl input{background:#fff;color:#2c7a4b}
+  .rb{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .e2{color:var(--err);font-size:12px;min-height:17px;margin-top:8px}
+  .qrb{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;align-items:flex-start}
+  .qrb img{width:120px;height:120px;border-radius:10px;background:#fff;padding:6px}
+  .addrow{text-align:center;margin-top:18px}
+  .setrow{margin-top:18px}
+  .setrow:first-child{margin-top:0}
+  .setrow h3{margin:0 0 10px;font-size:15px}
+  .opt{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;
+    color:var(--dim);border-radius:99px;padding:8px 16px;font:inherit;font-size:13px;cursor:pointer;margin:4px;
+    transition:all .2s;box-shadow:0 5px 16px -8px var(--purpleGlow)}
+  .opt:hover{color:var(--txt);transform:translateY(-1px)}
+  .opt.on{background:linear-gradient(135deg,var(--purple),#c4b5fd);color:#fff;font-weight:800;border-color:transparent;
+    box-shadow:0 8px 24px -4px var(--purpleGlow)}
+  .warn{background:rgba(232,176,75,.1);border:1px dashed rgba(232,176,75,.5);color:var(--amber2);
+    padding:10px 14px;border-radius:12px;font-size:12.5px;margin:10px 0}
+  html[data-theme=light] .warn{color:#8a6a1f;background:rgba(232,176,75,.12)}
+  .note{color:var(--dim);font-size:12px;margin-top:24px;border-top:1px solid var(--line);padding-top:14px;line-height:2}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);opacity:0;
+    background:var(--card);backdrop-filter:blur(10px);border:1px solid var(--line);color:var(--txt);
+    padding:10px 18px;border-radius:99px;font-size:13px;z-index:99;transition:all .3s;pointer-events:none;
+    box-shadow:0 12px 34px -8px var(--purpleGlow)}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  .loglist{list-style:none;margin:0;padding:0}
+  .loglist li{display:flex;gap:10px;align-items:baseline;padding:10px 6px;border-bottom:1px solid var(--line);font-size:13px}
+  .loglist li:last-child{border-bottom:0}
+  .loglist .tm{color:var(--dim);font-size:11.5px;flex:none;direction:ltr}
+  .dot{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block;margin-top:7px}
+  .dot.g{background:var(--ok)}.dot.r{background:var(--err)}.dot.b{background:var(--blue)}.dot.y{background:var(--amber)}
+  .srvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:12px}
+  .srv{padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card);
+    transition:transform .2s,box-shadow .25s}
+  .srv:hover{transform:translateY(-2px);box-shadow:0 10px 26px -8px var(--purpleGlow)}
+  .srv b{display:block;font-size:13.5px;margin-bottom:4px;word-break:break-all}
+  .srv span{font-size:11.5px;color:var(--dim);display:block}
+  .tagp{display:inline-block;padding:2px 10px;border-radius:99px;font-size:10.5px;background:rgba(110,168,255,.14);
+    color:var(--blue);border:1px solid rgba(110,168,255,.35);margin-top:6px}
+  .bkarea{width:100%;min-height:140px;direction:ltr;text-align:left;font-family:var(--mono);font-size:11.5px;
+    background:rgba(0,0,0,.28);border:1px solid var(--line);color:var(--txt);border-radius:12px;padding:12px;margin-top:10px}
+  html[data-theme=light] .bkarea{background:#fff}
+  .mini{font-size:12px;color:var(--dim);line-height:1.9}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+
+  <div id="loginView">
+    <div class="lb glass">
+      <div class="sw">
+        <svg viewBox="0 0 64 64" fill="none">
+          <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f5d47a"/><stop offset="1" stop-color="#c98f2b"/>
+          </linearGradient></defs>
+          <path d="M32 3l24 8v18c0 15-10.2 26.5-24 32C18.2 55.5 8 44 8 29V11l24-8z" fill="url(#sg)" opacity=".18"/>
+          <path d="M32 3l24 8v18c0 15-10.2 26.5-24 32C18.2 55.5 8 44 8 29V11l24-8z" stroke="url(#sg)" stroke-width="2.6" stroke-linejoin="round"/>
+          <path d="M32 16.5l13 4.5v9.5c0 8.4-5.5 15-13 18.5-7.5-3.5-13-10.1-13-18.5V21l13-4.5z" fill="url(#sg)" opacity=".38"/>
+          <rect x="26" y="28" width="12" height="10" rx="2.2" stroke="url(#sg)" stroke-width="2.4"/>
+          <path d="M28.4 28v-3.2a3.6 3.6 0 0 1 7.2 0V28" stroke="url(#sg)" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="32" cy="33" r="1.7" fill="#f5d47a"/>
+          <path d="M32 33v4" stroke="#f5d47a" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1 id="xTitle">ورود امن</h1>
+      <p class="sub" id="xSub">امنیت شما، اولویت ماست</p>
+      <div class="lf">
+        <label id="xU">نام کاربری</label>
+        <input id="inU" type="text" autocomplete="off">
+        <label id="xP">رمز عبور</label>
+        <input id="inP" type="password">
+        <label id="xP2" class="hide">تکرار رمز</label>
+        <input id="inP2" type="password" class="hide">
+      </div>
+      <div class="msg" id="xMsg"></div>
+      <div class="acts">
+        <button class="btn btn-p" id="bGo">ورود ←</button>
+        <span class="pill" id="pLang" title="زبان / Language">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#6ea8ff" stroke-width="2">
+            <circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 2.6 4 5.7 4 9s-1.2 6.4-4 9c-2.8-2.6-4-5.7-4-9s1.2-6.4 4-9z"/>
+          </svg>
+          <span class="lbl" id="pLangTxt">EN</span>
+        </span>
+        <span class="pill" id="pTheme" title="تم / Theme">
+          <svg id="icoMoon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#a78bfa" stroke-width="2">
+            <path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z" fill="rgba(167,139,250,.25)"/>
+          </svg>
+          <svg id="icoSun" class="hide" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#e8b04b" stroke-width="2">
+            <circle cx="12" cy="12" r="4.5" fill="rgba(232,176,75,.3)"/>
+            <path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/>
+          </svg>
+        </span>
+      </div>
+      <div class="sub" style="margin-top:14px">SHA-256</div>
+    </div>
+  </div>
+
+  <div id="appView" class="hide">
+    <header class="bar glass">
+      <span class="brand">🛡 Panel Vercel Sub</span>
+      <span class="who" id="who"></span>
+      <span class="spacer" style="flex:1"></span>
+      <span class="pill" id="pLang2" title="زبان / Language">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#6ea8ff" stroke-width="2">
+          <circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 2.6 4 5.7 4 9s-1.2 6.4-4 9c-2.8-2.6-4-5.7-4-9s1.2-6.4 4-9z"/>
+        </svg>
+        <span class="lbl" id="pLangTxt2">EN</span>
+      </span>
+      <span class="pill" id="pTheme2" title="تم / Theme">
+        <svg id="icoMoon2" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#a78bfa" stroke-width="2">
+          <path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z" fill="rgba(167,139,250,.25)"/>
+        </svg>
+        <svg id="icoSun2" class="hide" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#e8b04b" stroke-width="2">
+          <circle cx="12" cy="12" r="4.5" fill="rgba(232,176,75,.3)"/>
+          <path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/>
+        </svg>
+      </span>
+      <button class="btn btn-g" id="bOut">خروج</button>
+    </header>
+
+    <nav class="menu glass">
+      <button class="tab on" id="tabDash">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#ff9f43" stroke-width="2" stroke-linecap="round"><path d="M4 13h6V4H4v9zM14 20h6v-9h-6v9zM4 20h6v-4H4v4zM14 8h6V4h-6v4z"/></svg>
+        <span id="tabDashTxt">داشبورد</span>
+      </button>
+      <button class="tab" id="tabSubs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#5fbf77" stroke-width="2" stroke-linecap="round"><path d="M4 7l8-4 8 4-8 4-8-4z"/><path d="M4 12l8 4 8-4M4 17l8 4 8-4"/></svg>
+        <span id="tabSubsTxt">لیست ساب‌ها</span>
+      </button>
+      <button class="tab" id="tabAct">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        <span id="tabActTxt">فعالیت‌ها</span>
+      </button>
+      <button class="tab" id="tabSrv">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#6ea8ff" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>
+        <span id="tabSrvTxt">سرورها</span>
+      </button>
+      <button class="tab" id="tabBk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f78fb3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span id="tabBkTxt">پشتیبان</span>
+      </button>
+      <button class="tab" id="tabSet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#8892b0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1l2.1-2.1M17 7l2.1-2.1"/></svg>
+        <span id="tabSetTxt">تنظیمات</span>
+      </button>
+    </nav>
+
+    <section id="pgDash">
+      <div class="warn" id="wDef"></div>
+      <div class="stats">
+        <div class="stat glass"><span id="s1">بخش‌ها</span><b id="v1">0</b></div>
+        <div class="stat glass"><span id="s2">کانفیگ‌ها</span><b id="v2">0</b></div>
+        <div class="stat glass"><span id="s3">لینک‌ها</span><b id="v3">0</b></div>
+        <div class="stat glass"><span id="s4">آخرین ذخیره</span><b id="v4" style="font-size:14px">—</b></div>
+      </div>
+      <div class="glass pad">
+        <h3 style="margin:0 0 8px;font-size:15px">شروع سریع</h3>
+        <ol style="margin:0;padding-inline-start:20px;color:var(--dim);font-size:13px;line-height:2">
+          <li>از منوی «لیست ساب‌ها» دکمه‌ی ＋ را بزن.</li>
+          <li>کانفیگ‌ها را در کادر بنویس — هر کدام یک خط؛ ذخیره‌ی خودکار انجام می‌شود.</li>
+          <li>«ساخت لینک» را بزن؛ لینک ثابت را کپی یا QR کن.</li>
+          <li>لینک را در v2rayNG/PattNG بده: ＋ → ایجاد اشتراک با آدرس.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="pgSubs" class="hide">
+      <div id="secs"></div>
+      <div class="addrow"><button class="btn btn-p" id="bAdd">＋ افزودن ساب جدید</button></div>
+    </section>
+
+    <section id="pgAct" class="hide">
+      <div class="glass pad">
+        <h3 style="margin:0 0 10px;font-size:15px">فعالیت‌های اخیر</h3>
+        <ul class="loglist" id="logL"></ul>
+        <div class="mini" style="margin-top:10px">آخرین ۵۰ رخدادِ همین مرورگر + رویدادهای زنده</div>
+      </div>
+    </section>
+
+    <section id="pgSrv" class="hide">
+      <div class="glass pad">
+        <h3 style="margin:0 0 4px;font-size:15px">کانفیگ‌های ثبت‌شده</h3>
+        <div class="mini">تفکیک‌شده از متنِ همه‌ی ساب‌ها — این‌جا فقط فهرست است؛ زنده‌بودنِ سرورها را اپ خودت به‌تو می‌گوید</div>
+        <div class="srvgrid" id="srvG"></div>
+      </div>
+    </section>
+
+    <section id="pgBk" class="hide">
+      <div class="glass pad">
+        <h3 style="margin:0 0 4px;font-size:15px">پشتیبان‌گیری و بازیابی</h3>
+        <div class="mini">همه‌ی ساب‌ها و کاربران در یک فایل JSON — نگهش دار؛ روز مبادا با «بازیابی» برمی‌گردد.</div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-p" id="bkGet">📥 گرفتن پشتیبان</button>
+          <button class="btn btn-g" id="bkDl">💾 دانلود فایل</button>
+          <label class="btn btn-g" style="cursor:pointer">📂 انتخاب فایل<input type="file" id="bkFile" accept=".json" class="hide"></label>
+          <button class="btn btn-p" id="bkRestore">♻️ بازیابی</button>
+        </div>
+        <textarea class="bkarea" id="bkArea" placeholder="خروجی پشتیبان این‌جا نمایش داده می‌شود — یا JSON پشتیبان را Paste کنید"></textarea>
+        <div class="msg" id="bkMsg" style="min-height:18px"></div>
+      </div>
+    </section>
+
+    <section id="pgSet" class="hide">
+      <div class="glass pad">
+        <div class="setrow">
+          <h3 id="pmT">تغییر رمز</h3>
+          <div class="lf">
+            <label id="pm1">رمز فعلی</label><input id="pmO" type="password">
+            <label id="pm2">رمز جدید (حداقل ۵)</label><input id="pmN" type="password">
+            <label id="pm3">تکرار رمز جدید</label><input id="pmN2" type="password">
+          </div>
+          <div style="display:flex;gap:10px;margin-top:12px">
+            <button class="btn btn-p" id="pmGo">ذخیره</button>
+          </div>
+          <div class="msg" id="pmMsg" style="min-height:18px"></div>
+        </div>
+        <div class="setrow">
+          <h3 id="apT">ظاهر</h3>
+          <button class="opt" id="oLight">☀ روشن</button>
+          <button class="opt" id="oDark">☾ تیره</button>
+        </div>
+        <div class="setrow">
+          <h3 id="lgT">زبان</h3>
+          <button class="opt" id="oFa">فارسی</button>
+          <button class="opt" id="oEn">English</button>
+        </div>
+        <div class="setrow">
+          <h3 id="accT">حساب</h3>
+          <div style="color:var(--dim);font-size:13px" id="accV"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="note" id="noteF"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+var $=function(s){return document.querySelector(s)};
+var LS=window.localStorage;
+var S={lang:LS.getItem('p_lang')||'fa',theme:LS.getItem('pv_theme')||'light',
+       sess:null,role:null,user:null,tsess:null,tuser:'admin',secs:[],last:'—',log:[]};
+var MODE='login';
+var T={
+ fa:{ti:'ورود امن',su:'امنیت شما، اولویت ماست',u:'نام کاربری',p:'رمز عبور',p2:'تکرار رمز',
+  np:'رمز جدید (حداقل ۵)',np2:'تکرار رمز جدید',go:'ورود ←',sv:'ذخیره',
+  ei:'نام کاربری و رمز را کامل وارد کن.',en:'نام کاربری یا رمز اشتباه است.',
+  es:'رمز حداقل ۵ نویسه باشد.',em:'تکرار رمز مطابقت ندارد.',eu:'نام کاربری حداقل ۳ نویسه.',
+  edb:'خطای سرور — تنظیمات Supabase در Vercel را بررسی کن.',esess:'نشست منقضی شد — دوباره وارد شو.',
+  ttl:'تعیین رمز مدیر',tsub:'رمز پیش‌فرض admin/admin را با رمز جدید جایگزین کن',
+  ph:'هر کانفیگ در یک خط…\nvless://uuid@host:443?type=ws&security=tls#نام',
+  m1:'داشبورد',m2:'لیست ساب‌ها',m3:'تنظیمات',m4:'فعالیت‌ها',m5:'سرورها',m6:'پشتیبان',out:'خروج',
+  s1:'بخش‌ها',s2:'کانفیگ‌ها',s3:'لینک‌ها',s4:'آخرین ذخیره',
+  add:'＋ افزودن ساب جدید',empty:'هنوز سابی نیست — با ＋ اولین را بساز',
+  mk:'ساخت لینک',cp:'کپی',rk:'تعویض آدرس',sh:'کوتاه‌سازی',qr:'QR',del:'حذف',
+  nl:'هنوز لینکی نیست — «ساخت لینک» را بزن.',stT:'عنوان (اختیاری)',
+  sav:'در حال ذخیره…',ok:'ذخیره شد ✓',err:'خطای ذخیره',
+  dcf:'این ساب حذف شود؟',rkc:'تعویض آدرس؟ لینک قدیمی از کار می‌افتد.',
+  kk:'آدرس جدید ساخته شد؛ لینک قدیمی از کار افتاد ✓',
+  shf:'کوتاه‌سازی نشد — لینک کامل را بده.',shok:'لینک کوتاه شد ✓',cped:'کپی شد ✓',
+  pmT:'تغییر رمز',pm1:'رمز فعلی',pm2:'رمز جدید (حداقل ۵)',pm3:'تکرار رمز جدید',pmGo:'ذخیره',
+  apT:'ظاهر',lgT:'زبان',accT:'حساب',lightB:'☀ روشن',darkB:'☾ تیره',
+  admin:'ادمین',userL:'کاربر',
+  warn:'⚠️ رمز پیش‌فرض admin/admin فعال است — از «تنظیمات ← تغییر رمز» همین حالا عوضش کن.',
+  okS:'رمز مدیر تعیین شد ✓',
+  noAct:'هنوز فعالیتی ثبت نشده.',
+  noSrv:'کانفیگی ثبت نشده — اول در «لیست ساب‌ها» بنویس.',
+  bkGet:'📥 گرفتن پشتیبان',bkDl:'💾 دانلود فایل',bkRes:'♻️ بازیابی',bkOk:'پشتیبان آماده شد ✓',
+  bkResOk:'بازیابی انجام شد — {n} ساب برگشت',bkBad:'فایل پشتیبان معتبر نیست.',
+  f1:'آدرس لینک هر ساب ثابت است؛ «تعویض آدرس» لینک قدیمی را از کار می‌اندازد.',
+  f2:'لینک ساب مثل رمز است؛ هر کس داشته باشد، کانفیگ‌ها را می‌بیند.',
+  f3:'لو رفت؟ فقط «تعویض آدرس» بزن.'},
+ en:{ti:'Secure Login',su:'Your security, our priority',u:'Username',p:'Password',p2:'Repeat',
+  np:'New password (min 5)',np2:'Repeat new',go:'Login →',sv:'Save',
+  ei:'Enter username and password.',en:'Wrong username or password.',
+  es:'Password must be 5+ chars.',em:'Passwords do not match.',eu:'Username at least 3 chars.',
+  edb:'Server error — check Supabase settings in Vercel.',esess:'Session expired — login again.',
+  ttl:'Set admin password',tsub:'Replace default admin/admin with a new password',
+  ph:'One config per line…\nvless://uuid@host:443?type=ws&security=tls#name',
+  m1:'Dashboard',m2:'Subscriptions',m3:'Settings',m4:'Activity',m5:'Servers',m6:'Backup',out:'Logout',
+  s1:'Sections',s2:'Configs',s3:'Links',s4:'Last save',
+  add:'＋ Add new sub',empty:'No subs yet — hit ＋ to create the first',
+  mk:'Create link',cp:'Copy',rk:'Reset link',sh:'Shorten',qr:'QR',del:'Delete',
+  nl:'No link yet — hit Create link.',stT:'Title (optional)',
+  sav:'Saving…',ok:'Saved ✓',err:'Save failed',
+  dcf:'Delete this sub?',rkc:'Reset link? The old one dies.',
+  kk:'New address created; old link is dead ✓',
+  shf:'Shorten failed — use the full link.',shok:'Short link ready ✓',cped:'Copied ✓',
+  pmT:'Change password',pm1:'Current password',pm2:'New password (min 5)',pm3:'Repeat new',pmGo:'Save',
+  apT:'Appearance',lgT:'Language',accT:'Account',lightB:'☀ Light',darkB:'☾ Dark',
+  admin:'admin',userL:'user',
+  warn:'⚠️ Default admin/admin is active — change it in Settings ← Password now.',
+  okS:'Admin password set ✓',
+  noAct:'No activity yet.',
+  noSrv:'No configs yet — write some in Subscriptions first.',
+  bkGet:'📥 Get backup',bkDl:'💾 Download file',bkRes:'♻️ Restore',bkOk:'Backup ready ✓',
+  bkResOk:'Restored — {n} subs back',bkBad:'Invalid backup file.',
+  f1:'Sub links are permanent; Reset link kills the old one.',
+  f2:'A sub link is like a password — whoever has it sees the configs.',
+  f3:'Leaked? Just hit Reset link.'}
+};
+function t(k){var o=T[S.lang];return (o&&o[k])||T.fa[k]||k}
+function faN(n){return String(n).replace(/\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[+d]})}
+function numLbl(i){return S.lang==='fa'?'ساب '+faN(i+1):'Sub '+(i+1)}
+function toast(m){var e=$('#toast');e.textContent=m;e.classList.add('show');
+ clearTimeout(toast._t);toast._t=setTimeout(function(){e.classList.remove('show')},2600)}
+function lmsg(m){$('#xMsg').textContent=m||''}
+async function api(path,body){
+ try{var r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+  return await r.json()}catch(e){return{ok:false,e:'net'}}}
+function mapErr(e){
+ var M={input:t('ei'),no:t('en'),short:t('es'),match:t('em'),user:t('eu'),
+  db:t('edb'),sess:t('esess'),owner:t('edb'),size:t('edb'),done:t('edb'),net:t('edb'),bad:t('bkBad')};
+ return M[e]||t('edb')}
+function escH(s){return String(s).replace(/[&<>"']/g,function(c){
+ return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+/* ── لاگ ── */
+function logAdd(kind,txt){
+ var tm=new Date().toLocaleTimeString(S.lang==='fa'?'fa-IR':'en-US',{hour:'2-digit',minute:'2-digit'});
+ S.log.unshift({k:kind,x:txt,tm:tm});
+ if(S.log.length>50)S.log.pop();
+ try{LS.setItem('p_log',JSON.stringify(S.log))}catch(e){}
+ drawLog()}
+function drawLog(){
+ var el=$('#logL');if(!el)return;
+ if(!S.log.length){el.innerHTML='<li style="color:var(--dim)">'+t('noAct')+'</li>';return}
+ var h='';
+ S.log.forEach(function(L){
+  var c=L.k==='ok'?'g':L.k==='err'?'r':L.k==='warn'?'y':'b';
+  h+='<li><span class="dot '+c+'"></span><span style="flex:1">'+escH(L.x)+'</span><span class="tm">'+L.tm+'</span></li>'});
+ el.innerHTML=h}
+function loadLog(){
+ try{S.log=JSON.parse(LS.getItem('p_log')||'[]')}catch(e){S.log=[]}
+ drawLog()}
+
+/* ── تم/زبان ── */
+function applyTheme(){
+ document.documentElement.setAttribute('data-theme',S.theme);
+ var dark=S.theme==='dark';
+ $('#icoMoon').classList.toggle('hide',dark);$('#icoSun').classList.toggle('hide',!dark);
+ $('#icoMoon2').classList.toggle('hide',dark);$('#icoSun2').classList.toggle('hide',!dark);
+ $('#oLight').classList.toggle('on',!dark);
+ $('#oDark').classList.toggle('on',dark);
+ LS.setItem('pv_theme',S.theme)}
+function applyLang(){
+ document.documentElement.setAttribute('lang',S.lang);
+ document.documentElement.setAttribute('dir',S.lang==='fa'?'rtl':'ltr');
+ var o=S.lang==='fa'?'EN':'FA';
+ $('#pLangTxt').textContent=o;$('#pLangTxt2').textContent=o;
+ LS.setItem('p_lang',S.lang);
+ $('#xTitle').textContent=MODE==='setup'?t('ttl'):t('ti');
+ $('#xSub').textContent=MODE==='setup'?t('tsub'):t('su');
+ $('#xU').textContent=t('u');
+ $('#xP').textContent=MODE==='setup'?t('np'):t('p');
+ $('#xP2').textContent=MODE==='setup'?t('np2'):t('p2');
+ $('#bGo').textContent=MODE==='setup'?t('sv'):t('go');
+ $('#inP2').classList.toggle('hide',MODE==='login');
+ $('#inU').classList.toggle('hide',MODE==='setup');
+ $('#tabDashTxt').textContent=t('m1');$('#tabSubsTxt').textContent=t('m2');
+ $('#tabSetTxt').textContent=t('m3');$('#tabActTxt').textContent=t('m4');
+ $('#tabSrvTxt').textContent=t('m5');$('#tabBkTxt').textContent=t('m6');
+ $('#bOut').textContent=t('out');
+ $('#s1').textContent=t('s1');$('#s2').textContent=t('s2');$('#s3').textContent=t('s3');$('#s4').textContent=t('s4');
+ $('#bAdd').textContent=t('add');
+ $('#pmT').textContent=t('pmT');$('#pm1').textContent=t('pm1');$('#pm2').textContent=t('pm2');
+ $('#pm3').textContent=t('pm3');$('#pmGo').textContent=t('pmGo');
+ $('#apT').textContent=t('apT');$('#lgT').textContent=t('lgT');$('#accT').textContent=t('accT');
+ $('#oLight').textContent=t('lightB');$('#oDark').textContent=t('darkB');
+ $('#bkGet').textContent=t('bkGet');$('#bkDl').textContent=t('bkDl');$('#bkRestore').textContent=t('bkRes');
+ $('#who').textContent=S.user?S.user+' · '+(S.role==='admin'?t('admin'):t('userL')):'';
+ $('#accV').textContent=$('#who').textContent||'—';
+ $('#noteF').innerHTML='· '+t('f1')+'<br>· '+t('f2')+'<br>· '+t('f3');
+ var on=!!S.sess&&S.user==='admin'&&!LS.getItem('p_done');
+ $('#wDef').textContent=t('warn');
+ $('#wDef').classList.toggle('hide',!on)}
+function mkStars(){
+ var h='';for(var i=0;i<46;i++){var sz=(Math.random()*2.2+.6).toFixed(1);
+  h+='<i class="star" style="left:'+(Math.random()*100).toFixed(1)+'%;top:'+(Math.random()*100).toFixed(1)
+   +'%;width:'+sz+'px;height:'+sz+'px;animation-delay:'+(Math.random()*3).toFixed(1)+'s"></i>'}
+ $('#stars').innerHTML=h}
+
+function setMode(m){MODE=m;
+ ['inU','inP','inP2'].forEach(function(x){$('#'+x).value=''});
+ lmsg('');applyLang()}
+function go(p){
+ ['dash','subs','act','srv','bk','set'].forEach(function(x){
+  var on=x===p;
+  var id='#pg'+x.charAt(0).toUpperCase()+x.slice(1);
+  var tb='#tab'+x.charAt(0).toUpperCase()+x.slice(1);
+  $(id).classList.toggle('hide',!on);
+  $(tb).classList.toggle('on',on)});
+ if(p==='act')drawLog();
+ if(p==='srv')drawSrv()}
+
+/* ── لاگین ── */
+async function doLogin(){
+ var u=$('#inU').value.trim(),p=$('#inP').value;
+ if(!u||!p)return lmsg(t('ei'));
+ $('#bGo').disabled=true;
+ var j=await api('/api/auth',{action:'login',u:u,p:p});
+ $('#bGo').disabled=false;
+ if(!j.ok)return lmsg(mapErr(j.e));
+ if(j.mustSetup){S.tsess=j.s;S.tuser=u;setMode('setup');return}
+ enter(j)}
+async function doSetup(){
+ var p1=$('#inP').value,p2=$('#inP2').value;
+ if(p1.length<5)return lmsg(t('es'));
+ if(p1!==p2)return lmsg(t('em'));
+ $('#bGo').disabled=true;
+ var j=await api('/api/auth',{action:'setup',s:S.tsess,p1:p1,p2:p2});
+ if(!j.ok){$('#bGo').disabled=false;return lmsg(mapErr(j.e))}
+ var j2=await api('/api/auth',{action:'login',u:S.tuser||'admin',p:p1});
+ $('#bGo').disabled=false;
+ if(j2.ok&&!j2.mustSetup){LS.setItem('p_done','1');toast(t('okS'));logAdd('ok',t('okS'));enter(j2)}
+ else lmsg(t('edb'))}
+function enter(j){
+ S.sess=j.s;S.role=j.role;S.user=j.u;
+ LS.setItem('p_s',j.s);LS.setItem('p_r',j.role);LS.setItem('p_u',j.u);
+ $('#loginView').classList.add('hide');$('#appView').classList.remove('hide');
+ go('dash');applyLang();load();
+ logAdd('info',(S.lang==='fa'?'ورود: ':'login: ')+S.user)}
+async function doOut(){
+ if(S.sess)await api('/api/auth',{action:'logout',s:S.sess});
+ ['p_s','p_r','p_u'].forEach(function(k){LS.removeItem(k)});
+ S.sess=S.role=S.user=null;S.secs=[];
+ $('#appView').classList.add('hide');$('#loginView').classList.remove('hide');
+ setMode('login')}
+
+/* ── ساب‌ها ── */
+async function load(){
+ var j=await api('/api/sections',{action:'list',s:S.sess});
+ if(!j.ok){if(j.e==='sess'){doOut();return}toast(mapErr(j.e));return}
+ S.secs=j.list||[];
+ if(!S.secs.length){
+  $('#secs').innerHTML='<div class="glass pad" style="color:var(--dim);text-align:center">'+t('empty')+'</div>'}
+ else{
+  var h='';S.secs.forEach(function(sec,i){h+=secHtml(sec,i)});
+  $('#secs').innerHTML=h;
+  S.secs.forEach(bindSec)}
+ stats()}
+function stats(){
+ $('#v1').textContent=S.secs.length;
+ $('#v2').textContent=S.secs.reduce(function(a,x){return a+((x.content||'').split('\n').filter(function(l){return l.trim()}).length)},0);
+ $('#v3').textContent=S.secs.filter(function(x){return x.sub_key}).length;
+ $('#v4').textContent=S.last}
+function secHtml(sec,i){
+ var lk=sec.sub_key?location.origin+'/s/'+sec.sub_key:'';
+ return '<div class="sec glass" id="c-'+sec.id+'">'
+ +'<div class="hd"><span class="num">'+numLbl(i)+'</span>'
+ +'<input id="ti-'+sec.id+'" value="'+escH(sec.title||'')+'" placeholder="'+t('stT')+'" style="max-width:170px">'
+ +'<span class="stt" id="sy-'+sec.id+'"></span></div>'
+ +'<textarea id="tx-'+sec.id+'" placeholder="'+escH(t('ph'))+'">'+escH(sec.content||'')+'</textarea>'
+ +'<div class="surl"><input id="li-'+sec.id+'" readonly placeholder="'+escH(t('nl'))+'" value="'+escH(lk)+'"></div>'
+ +'<div class="rb">'
+ +'<button class="btn btn-p" id="mk-'+sec.id+'">'+t('mk')+'</button>'
+ +'<button class="btn btn-g" id="cp-'+sec.id+'">'+t('cp')+'</button>'
+ +'<button class="btn btn-g" id="rk-'+sec.id+'">'+t('rk')+'</button>'
+ +'<button class="btn btn-g" id="sh-'+sec.id+'">'+t('sh')+'</button>'
+ +'<button class="btn btn-g" id="qr-'+sec.id+'">'+t('qr')+'</button>'
+ +'<button class="btn btn-g" style="color:var(--err)" id="dl-'+sec.id+'">'+t('del')+'</button>'
+ +'</div>'
+ +'<div class="e2" id="er-'+sec.id+'"></div>'
+ +'<div class="qrb hide" id="qb-'+sec.id+'"><img id="qi-'+sec.id+'" alt="QR"></div>'
+ +'</div>'}
+function pushSave(id){
+ var tx=$('#tx-'+id),ti=$('#ti-'+id),sy=$('#sy-'+id);
+ sy.textContent=t('sav');sy.className='stt busy show';
+ api('/api/sections',{action:'save',s:S.sess,id:id,content:tx.value,title:ti.value}).then(function(j){
+  if(j.ok){
+   sy.textContent=t('ok');sy.className='stt ok show';
+   setTimeout(function(){sy.classList.remove('show')},1800);
+   S.last=new Date().toLocaleTimeString(S.lang==='fa'?'fa-IR':'en-US',{hour:'2-digit',minute:'2-digit'});
+   var s=null;S.secs.forEach(function(x){if(x.id===id)s=x});
+   if(s){s.content=tx.value;s.title=ti.value}
+   stats()}
+  else{
+   sy.textContent=t('err');sy.className='stt err show';
+   logAdd('err',t('err'));
+   if(j.e==='sess')doOut()}})}
+function bindSec(sec){
+ var id=sec.id,deb;
+ function sched(){clearTimeout(deb);deb=setTimeout(function(){pushSave(id)},900)}
+ $('#tx-'+id).addEventListener('input',sched);
+ $('#ti-'+id).addEventListener('input',sched);
+ $('#mk-'+id).onclick=async function(){
+  var j=await api('/api/sections',{action:'key',s:S.sess,id:id});
+  if(!j.ok){$('#er-'+id).textContent=mapErr(j.e);logAdd('err',mapErr(j.e));if(j.e==='net')load();return}
+  logAdd('ok',numLbl(S.secs.indexOf(sec))+' → '+t('mk'));
+  toast('✓');load()};
+ $('#cp-'+id).onclick=async function(){
+  var li=$('#li-'+id);if(!li.value)return;
+  try{await navigator.clipboard.writeText(li.value);toast(t('cped'))}
+  catch(e){li.select();document.execCommand('copy');toast(t('cped'))}};
+ $('#rk-'+id).onclick=async function(){
+  if(!confirm(t('rkc')))return;
+  var j=await api('/api/sections',{action:'key',s:S.sess,id:id});
+  if(!j.ok){$('#er-'+id).textContent=mapErr(j.e);if(j.e==='net')load();return}
+  logAdd('warn',numLbl(S.secs.indexOf(sec))+' → '+t('rk'));
+  toast(t('kk'));load()};
+ $('#sh-'+id).onclick=async function(){
+  var li=$('#li-'+id);if(!li.value)return;$('#er-'+id).textContent='';
+  try{var r=await fetch('https://is.gd/create.php?format=json&url='+encodeURIComponent(li.value));
+   var j=await r.json();
+   if(j&&j.shorturl){li.value=j.shorturl;toast(t('shok'))}
+   else{$('#er-'+id).textContent=t('shf')}}
+  catch(e){$('#er-'+id).textContent=t('shf')}};
+ $('#qr-'+id).onclick=function(){
+  var li=$('#li-'+id);if(!li.value)return;
+  var qb=$('#qb-'+id);
+  if(!qb.classList.contains('hide')){qb.classList.add('hide');return}
+  $('#qi-'+id).src='https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(li.value);
+  qb.classList.remove('hide')};
+ $('#dl-'+id).onclick=async function(){
+  if(!confirm(t('dcf')))return;
+  var j=await api('/api/sections',{action:'del',s:S.sess,id:id});
+  if(!j.ok){toast(mapErr(j.e));if(j.e==='net')load();return}
+  logAdd('err',numLbl(S.secs.indexOf(sec))+' → '+t('del'));
+  load()}}
+
+/* ── سرورها ── */
+function drawSrv(){
+ var g=$('#srvG');var lines=[];
+ S.secs.forEach(function(sec){
+  (sec.content||'').split('\n').forEach(function(l){
+   l=l.trim();if(l&&/^[a-z0-9]+:\/\//i.test(l))lines.push(l)})});
+ if(!lines.length){g.innerHTML='<div style="color:var(--dim)">'+t('noSrv')+'</div>';return}
+ var h='';
+ lines.forEach(function(l){
+  var m=l.match(/^([a-z0-9]+):\/\/([^@\/]+@)?([^:\/#?]+):(\d+)/i);
+  var proto=m?m[1].toLowerCase():'?';
+  var host=m?m[3]:(l.replace(/^[a-z0-9]+:\/\//i,'').split(/[:@\/?#]/)[0]||'—');
+  var name=(l.split('#')[1]||'').trim()||'—';
+  h+='<div class="srv"><b>'+escH(name)+'</b>'
+   +'<span>proto: '+escH(proto)+' · '+escH(host)+'</span>'
+   +'<span class="tagp">'+escH(proto.toUpperCase())+'</span></div>'});
+ g.innerHTML=h}
+
+/* ── پشتیبان ── */
+async function bkGet(){
+ $('#bkMsg').textContent='';
+ var j=await api('/api/sections',{action:'backup',s:S.sess});
+ if(!j.ok){$('#bkMsg').textContent=mapErr(j.e);return}
+ $('#bkArea').value=JSON.stringify(j.data,null,2);
+ toast(t('bkOk'));
+ logAdd('info',t('bkGet'))}
+function bkDl(){
+ var txt=$('#bkArea').value;
+ if(!txt){$('#bkMsg').textContent=t('bkGet')+'!';return}
+ var blob=new Blob([txt],{type:'application/json'});
+ var a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='panel-backup-'+new Date().toISOString().slice(0,10)+'.json';
+ a.click();URL.revokeObjectURL(a.href)}
+async function bkRestore(){
+ var txt=$('#bkArea').value;
+ if(!txt)return $('#bkMsg').textContent=t('bkBad');
+ var d;
+ try{d=JSON.parse(txt)}catch(e){return $('#bkMsg').textContent=t('bkBad')}
+ if(!d||!Array.isArray(d.sections))return $('#bkMsg').textContent=t('bkBad');
+ var j=await api('/api/sections',{action:'restore',s:S.sess,data:d});
+ if(!j.ok)return $('#bkMsg').textContent=mapErr(j.e);
+ $('#bkMsg').textContent='';
+ toast(t('bkResOk').replace('{n}',j.added));
+ logAdd('ok',t('bkResOk').replace('{n}',j.added));
+ load()}
+
+/* ── اتصال‌ها ── */
+ $('#bGo').onclick=async function(){if(MODE==='setup')return doSetup();return doLogin()};
+ $('#inP').addEventListener('keydown',function(e){if(e.key==='Enter'){if(MODE==='setup')doSetup();else doLogin()}});
+ $('#inP2').addEventListener('keydown',function(e){if(e.key==='Enter'){if(MODE==='setup')doSetup();else doLogin()}});
+ $('#pTheme').onclick=$('#pTheme2').onclick=function(){S.theme=S.theme==='dark'?'light':'dark';applyTheme()};
+ $('#pLang').onclick=$('#pLang2').onclick=function(){S.lang=S.lang==='fa'?'en':'fa';applyLang();if(S.sess){load();drawSrv()}};
+ $('#oLight').onclick=function(){S.theme='light';applyTheme()};
+ $('#oDark').onclick=function(){S.theme='dark';applyTheme()};
+ $('#oFa').onclick=function(){S.lang='fa';applyLang();if(S.sess){load();drawSrv()}};
+ $('#oEn').onclick=function(){S.lang='en';applyLang();if(S.sess){load();drawSrv()}};
+ $('#tabDash').onclick=function(){go('dash')};
+ $('#tabSubs').onclick=function(){go('subs')};
+ $('#tabAct').onclick=function(){go('act')};
+ $('#tabSrv').onclick=function(){go('srv')};
+ $('#tabBk').onclick=function(){go('bk')};
+ $('#tabSet').onclick=function(){go('set')};
+ $('#bOut').onclick=doOut;
+ $('#bAdd').onclick=async function(){
+ var j=await api('/api/sections',{action:'create',s:S.sess,title:''});
+ if(!j.ok){toast(mapErr(j.e));if(j.e==='net')load();return}
+ logAdd('info',(S.lang==='fa'?'ساب جدید ساخته شد':'new sub created'));
+ load()};
+ $('#bkGet').onclick=bkGet;
+ $('#bkDl').onclick=bkDl;
+ $('#bkRestore').onclick=bkRestore;
+ $('#bkFile').addEventListener('change',function(e){
+ var f=e.target.files&&e.target.files[0];if(!f)return;
+ var r=new FileReader();
+ r.onload=function(){$('#bkArea').value=r.result;$('#bkMsg').textContent='';toast('✓')};
+ r.readAsText(f)});
+ $('#pmGo').onclick=async function(){
+ var o=$('#pmO').value,n=$('#pmN').value,n2=$('#pmN2').value;
+ if(n.length<5)return $('#pmMsg').textContent=t('es');
+ if(n!==n2)return $('#pmMsg').textContent=t('em');
+ var j=await api('/api/auth',{action:'pass',s:S.sess,old:o,p1:n,p2:n2});
+ if(!j.ok)return $('#pmMsg').textContent=mapErr(j.e);
+ $('#pmMsg').textContent='';
+ ['pmO','pmN','pmN2'].forEach(function(x){$('#'+x).value=''});
+ toast('✓');LS.setItem('p_done','1');applyLang();
+ logAdd('ok',t('pmT')+' ✓')};
+
+applyTheme();applyLang();mkStars();loadLog();
+(function(){
+ var sv=LS.getItem('p_s');
+ if(sv){
+  S.sess=sv;S.role=LS.getItem('p_r')||'user';S.user=LS.getItem('p_u')||'';
+  enter({s:S.sess,role:S.role,u:S.user})}
+ else setMode('login')})();
+</script>
+</body>
+</html>
